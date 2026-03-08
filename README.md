@@ -76,8 +76,44 @@ Expected columns include:
 1. ETL pipeline reads raw CSV and performs cleaning and feature engineering.
 2. Gold dataset is saved as Parquet to `data/processed/gold/listings/`.
 3. Gold dataset and model artifacts are uploaded to MinIO bucket `airbnb-data`.
-4. Price model is trained with Spark MLlib RandomForestRegressor.
-5. Streamlit app runs with 3 pages: dashboard, natural language search, price prediction.
+4. Dataset is enriched with `zone_code` using `configs/bangkok_zone_mapping.json`.
+5. Natural language search can detect Bangkok zones (from aliases) and expand them into neighbourhood filters.
+6. Price model is trained with Spark MLlib RandomForestRegressor using zone-aware features.
+7. Streamlit app runs with 3 pages: dashboard, natural language search, price prediction.
+
+## Zone Search
+
+The Natural Language Search page supports Bangkok zone aliases defined in:
+
+- `configs/bangkok_zone_mapping.json`
+
+When a query mentions a zone alias, the parser returns `zone_code` and the search engine expands it to a neighbourhood list.
+
+Example:
+
+- Query: `room in sukhumvit`
+- Parsed zone: `SUK` (Sukhumvit Zone)
+- Expanded neighbourhoods: `Vadhana`, `Khlong Toei`, `Phra Khanong`
+
+Spark filtering behavior:
+
+```python
+df.filter(df.neighbourhood.isin(["Vadhana", "Khlong Toei", "Phra Khanong"]))
+```
+
+Supported example queries:
+
+- `room in sukhumvit`
+- `cheap room near rama 9`
+- `private room bang na`
+- `room in old town`
+
+In Streamlit Natural Language Search, you will see:
+
+- `Parsed Zone` (for example, `Detected Zone: Sukhumvit Zone`)
+- `Neighbourhoods used` (the expanded list)
+- Parsed query JSON and applied filters JSON
+- Human-readable filter logic (`WHERE ...`)
 
 ## Run Guide
 
