@@ -1,0 +1,414 @@
+{
+  "version": "1.0",
+  "description": "Custom Bangkok zone mapping for Airbnb search and price prediction project",
+  "city_center": {
+    "name": "Bangkok City Center",
+    "lat": 13.7563,
+    "lng": 100.5018
+  },
+  "zones": [
+    {
+      "zone_code": "CBD",
+      "zone_name": "CBD",
+      "display_name": "Central Business District",
+      "center_lat": 13.7315,
+      "center_lng": 100.5690,
+      "aliases": [
+        "cbd",
+        "central business district",
+        "downtown",
+        "city center",
+        "central"
+      ],
+      "neighbourhoods": [
+        "Pathum Wan",
+        "Ratchathewi",
+        "Sathon",
+        "Bang Rak",
+        "Khlong Toei",
+        "Vadhana"
+      ]
+    },
+    {
+      "zone_code": "SUK",
+      "zone_name": "Sukhumvit Zone",
+      "display_name": "Sukhumvit",
+      "center_lat": 13.7360,
+      "center_lng": 100.5610,
+      "aliases": [
+        "sukhumvit",
+        "asok",
+        "อโศก",
+        "พร้อมพงษ์",
+        "phrom phong",
+        "ทองหล่อ",
+        "thonglor",
+        "เอกมัย",
+        "ekkamai",
+        "nana"
+      ],
+      "neighbourhoods": [
+        "Vadhana",
+        "Khlong Toei",
+        "Phra Khanong"
+      ]
+    },
+    {
+      "zone_code": "SIL",
+      "zone_name": "Silom-Sathon Zone",
+      "display_name": "Silom / Sathon",
+      "center_lat": 13.7240,
+      "center_lng": 100.5340,
+      "aliases": [
+        "silom",
+        "si lom",
+        "สีลม",
+        "sathon",
+        "sathorn",
+        "สาทร",
+        "chong nonsi",
+        "saladaeng"
+      ],
+      "neighbourhoods": [
+        "Sathon",
+        "Bang Rak",
+        "Yan Nawa"
+      ]
+    },
+    {
+      "zone_code": "R9",
+      "zone_name": "Rama 9 Zone",
+      "display_name": "Rama 9",
+      "center_lat": 13.7560,
+      "center_lng": 100.5650,
+      "aliases": [
+        "rama 9",
+        "rama ix",
+        "พระราม 9",
+        "พระรามเก้า",
+        "ratchada",
+        "รัชดา",
+        "fortune",
+        "din daeng"
+      ],
+      "neighbourhoods": [
+        "Huai Khwang",
+        "Din Daeng",
+        "Ratchathewi"
+      ]
+    },
+    {
+      "zone_code": "ARI",
+      "zone_name": "Ari-Phaya Thai Zone",
+      "display_name": "Ari / Phaya Thai",
+      "center_lat": 13.7790,
+      "center_lng": 100.5440,
+      "aliases": [
+        "ari",
+        "อารีย์",
+        "phaya thai",
+        "พญาไท",
+        "saphan khwai",
+        "สะพานควาย"
+      ],
+      "neighbourhoods": [
+        "Phaya Thai",
+        "Chatuchak",
+        "Dusit"
+      ]
+    },
+    {
+      "zone_code": "CHAT",
+      "zone_name": "Chatuchak Zone",
+      "display_name": "Chatuchak / Ladprao",
+      "center_lat": 13.8160,
+      "center_lng": 100.5600,
+      "aliases": [
+        "chatuchak",
+        "จตุจักร",
+        "mo chit",
+        "หมอชิต",
+        "ladprao",
+        "ลาดพร้าว",
+        "lat phrao",
+        "ratchayothin"
+      ],
+      "neighbourhoods": [
+        "Chatuchak",
+        "Lat Phrao",
+        "Wang Thonglang"
+      ]
+    },
+    {
+      "zone_code": "BNA",
+      "zone_name": "Bang Na Zone",
+      "display_name": "Bang Na",
+      "center_lat": 13.6680,
+      "center_lng": 100.6340,
+      "aliases": [
+        "bang na",
+        "บางนา",
+        "bangna",
+        "udom suk",
+        "อุดมสุข",
+        "bearing",
+        "แบริ่ง",
+        "lasalle",
+        "mega bangna"
+      ],
+      "neighbourhoods": [
+        "Bang Na",
+        "Phra Khanong",
+        "Prawet"
+      ]
+    },
+    {
+      "zone_code": "ONN",
+      "zone_name": "On Nut Zone",
+      "display_name": "On Nut",
+      "center_lat": 13.7050,
+      "center_lng": 100.6010,
+      "aliases": [
+        "on nut",
+        "อ่อนนุช",
+        "onnut",
+        "phra khanong",
+        "พระโขนง",
+        "bang chak",
+        "ปุณณวิถี",
+        "punnawithi"
+      ],
+      "neighbourhoods": [
+        "Phra Khanong",
+        "Suanluang",
+        "Bang Na"
+      ]
+    },
+    {
+      "zone_code": "BKP",
+      "zone_name": "Bang Kapi Zone",
+      "display_name": "Bang Kapi",
+      "center_lat": 13.7660,
+      "center_lng": 100.6420,
+      "aliases": [
+        "bang kapi",
+        "บางกะปิ",
+        "bangkapi",
+        "hua mak",
+        "หัวหมาก",
+        "ramkhamhaeng",
+        "รามคำแหง",
+        "ลาดพร้าว 101"
+      ],
+      "neighbourhoods": [
+        "Bang Kapi",
+        "Saphan Sung",
+        "Bueng Kum",
+        "Wang Thonglang"
+      ]
+    },
+    {
+      "zone_code": "RAM",
+      "zone_name": "Ramkhamhaeng Zone",
+      "display_name": "Ramkhamhaeng",
+      "center_lat": 13.7565,
+      "center_lng": 100.6220,
+      "aliases": [
+        "ramkhamhaeng",
+        "รามคำแหง",
+        "hua mak",
+        "หัวหมาก",
+        "abac",
+        "airport link hua mak"
+      ],
+      "neighbourhoods": [
+        "Bang Kapi",
+        "Suanluang",
+        "Saphan Sung"
+      ]
+    },
+    {
+      "zone_code": "OLD",
+      "zone_name": "Old Town Zone",
+      "display_name": "Bangkok Old Town",
+      "center_lat": 13.7530,
+      "center_lng": 100.4980,
+      "aliases": [
+        "old town",
+        "พระนคร",
+        "phra nakhon",
+        "khaosan",
+        "ข้าวสาร",
+        "sanam luang",
+        "grand palace"
+      ],
+      "neighbourhoods": [
+        "Phra Nakhon",
+        "Pom Prap Sattru Phai",
+        "Samphanthawong",
+        "Dusit"
+      ]
+    },
+    {
+      "zone_code": "CHN",
+      "zone_name": "Chinatown Zone",
+      "display_name": "Chinatown / Yaowarat",
+      "center_lat": 13.7390,
+      "center_lng": 100.5100,
+      "aliases": [
+        "chinatown",
+        "yaowarat",
+        "เยาวราช",
+        "sampheng",
+        "สำเพ็ง",
+        "hua lamphong"
+      ],
+      "neighbourhoods": [
+        "Samphanthawong",
+        "Pom Prap Sattru Phai",
+        "Bang Rak"
+      ]
+    },
+    {
+      "zone_code": "RIV",
+      "zone_name": "Riverside Zone",
+      "display_name": "Riverside",
+      "center_lat": 13.7240,
+      "center_lng": 100.5070,
+      "aliases": [
+        "riverside",
+        "ริมแม่น้ำ",
+        "river",
+        "chao phraya",
+        "เจ้าพระยา",
+        "iconsiam",
+        "iconsiam",
+        "asiatique"
+      ],
+      "neighbourhoods": [
+        "Khlong San",
+        "Bang Kho Laem",
+        "Thon Buri",
+        "Rat Burana"
+      ]
+    },
+    {
+      "zone_code": "THON",
+      "zone_name": "Thonburi Zone",
+      "display_name": "Thonburi",
+      "center_lat": 13.7300,
+      "center_lng": 100.4850,
+      "aliases": [
+        "thonburi",
+        "ธนบุรี",
+        "ฝั่งธน",
+        "wongwian yai",
+        "วงเวียนใหญ่",
+        "talat phlu",
+        "ตลาดพลู"
+      ],
+      "neighbourhoods": [
+        "Thon Buri",
+        "Khlong San",
+        "Bangkok Yai",
+        "Bangkok Noi",
+        "Phasi Charoen"
+      ]
+    },
+    {
+      "zone_code": "DMK",
+      "zone_name": "Don Mueang Zone",
+      "display_name": "Don Mueang",
+      "center_lat": 13.9120,
+      "center_lng": 100.6070,
+      "aliases": [
+        "don mueang",
+        "donmuang",
+        "ดอนเมือง",
+        "don meaung",
+        "airport don mueang",
+        "dmk"
+      ],
+      "neighbourhoods": [
+        "Don Mueang",
+        "Lak Si",
+        "Sai Mai"
+      ]
+    },
+    {
+      "zone_code": "BKK",
+      "zone_name": "Bang Khen-Lak Si Zone",
+      "display_name": "Bang Khen / Lak Si",
+      "center_lat": 13.8730,
+      "center_lng": 100.5960,
+      "aliases": [
+        "bang khen",
+        "บางเขน",
+        "lak si",
+        "หลักสี่",
+        "kasetsart",
+        "เกษตร",
+        "ku"
+      ],
+      "neighbourhoods": [
+        "Bang Khen",
+        "Lak Si",
+        "Chatuchak"
+      ]
+    },
+    {
+      "zone_code": "BTS",
+      "zone_name": "BTS East Corridor",
+      "display_name": "BTS East Corridor",
+      "center_lat": 13.7090,
+      "center_lng": 100.5850,
+      "aliases": [
+        "bts east",
+        "bts line",
+        "east corridor",
+        "สุขุมวิทตอนปลาย"
+      ],
+      "neighbourhoods": [
+        "Vadhana",
+        "Phra Khanong",
+        "Bang Na"
+      ]
+    }
+  ],
+  "neighbourhood_centroids": [
+    { "name": "Bang Kapi", "lat": 13.7660, "lng": 100.6420, "zone_code": "BKP" },
+    { "name": "Bang Na", "lat": 13.6680, "lng": 100.6340, "zone_code": "BNA" },
+    { "name": "Bang Rak", "lat": 13.7300, "lng": 100.5230, "zone_code": "SIL" },
+    { "name": "Bang Kho Laem", "lat": 13.6930, "lng": 100.5020, "zone_code": "RIV" },
+    { "name": "Bang Khen", "lat": 13.8730, "lng": 100.5960, "zone_code": "BKK" },
+    { "name": "Bangkok Noi", "lat": 13.7700, "lng": 100.4680, "zone_code": "THON" },
+    { "name": "Bangkok Yai", "lat": 13.7310, "lng": 100.4750, "zone_code": "THON" },
+    { "name": "Bueng Kum", "lat": 13.8040, "lng": 100.6500, "zone_code": "BKP" },
+    { "name": "Chatuchak", "lat": 13.8160, "lng": 100.5600, "zone_code": "CHAT" },
+    { "name": "Din Daeng", "lat": 13.7700, "lng": 100.5570, "zone_code": "R9" },
+    { "name": "Don Mueang", "lat": 13.9120, "lng": 100.6070, "zone_code": "DMK" },
+    { "name": "Dusit", "lat": 13.7760, "lng": 100.5150, "zone_code": "ARI" },
+    { "name": "Huai Khwang", "lat": 13.7760, "lng": 100.5730, "zone_code": "R9" },
+    { "name": "Khlong San", "lat": 13.7300, "lng": 100.5070, "zone_code": "RIV" },
+    { "name": "Khlong Toei", "lat": 13.7180, "lng": 100.5670, "zone_code": "SUK" },
+    { "name": "Lak Si", "lat": 13.8860, "lng": 100.5790, "zone_code": "DMK" },
+    { "name": "Lat Phrao", "lat": 13.8110, "lng": 100.6080, "zone_code": "CHAT" },
+    { "name": "Pathum Wan", "lat": 13.7440, "lng": 100.5330, "zone_code": "CBD" },
+    { "name": "Phasi Charoen", "lat": 13.7140, "lng": 100.4370, "zone_code": "THON" },
+    { "name": "Phaya Thai", "lat": 13.7800, "lng": 100.5440, "zone_code": "ARI" },
+    { "name": "Phra Khanong", "lat": 13.7050, "lng": 100.6010, "zone_code": "ONN" },
+    { "name": "Phra Nakhon", "lat": 13.7560, "lng": 100.4970, "zone_code": "OLD" },
+    { "name": "Pom Prap Sattru Phai", "lat": 13.7410, "lng": 100.5090, "zone_code": "OLD" },
+    { "name": "Prawet", "lat": 13.7160, "lng": 100.6940, "zone_code": "BNA" },
+    { "name": "Ratchathewi", "lat": 13.7560, "lng": 100.5330, "zone_code": "CBD" },
+    { "name": "Rat Burana", "lat": 13.6710, "lng": 100.5060, "zone_code": "RIV" },
+    { "name": "Samphanthawong", "lat": 13.7390, "lng": 100.5100, "zone_code": "CHN" },
+    { "name": "Saphan Sung", "lat": 13.7700, "lng": 100.6900, "zone_code": "RAM" },
+    { "name": "Sathon", "lat": 13.7240, "lng": 100.5340, "zone_code": "SIL" },
+    { "name": "Sai Mai", "lat": 13.9210, "lng": 100.6460, "zone_code": "DMK" },
+    { "name": "Suanluang", "lat": 13.7300, "lng": 100.6260, "zone_code": "ONN" },
+    { "name": "Vadhana", "lat": 13.7360, "lng": 100.5610, "zone_code": "SUK" },
+    { "name": "Wang Thonglang", "lat": 13.7870, "lng": 100.6100, "zone_code": "BKP" },
+    { "name": "Yan Nawa", "lat": 13.6960, "lng": 100.5430, "zone_code": "SIL" }
+  ]
+}

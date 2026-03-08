@@ -1,0 +1,28 @@
+{
+  "room_type_aliases": {
+    "private room": "Private room",
+    "private": "Private room",
+    "room": null,
+    "entire home": "Entire home/apt",
+    "entire apartment": "Entire home/apt",
+    "entire": "Entire home/apt",
+    "shared room": "Shared room",
+    "shared": "Shared room",
+    "hotel room": "Hotel room",
+    "hotel": "Hotel room"
+  },
+  "price_hints": {
+    "cheap": 1000,
+    "budget": 1200,
+    "affordable": 1500,
+    "luxury": 5000
+  },
+  "location_prepositions": ["in", "at", "near"],
+  "location_aliases": {
+    "bang kapi": "Bang Kapi",
+    "bang na": "Bang Na",
+    "bangna": "Bang Na",
+    "ratchathewi": "Ratchathewi",
+    "sukhumvit": "Vadhana"
+  }
+}
