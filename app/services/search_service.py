@@ -80,8 +80,25 @@ def run_natural_language_search(query: str, limit: int = 10) -> Tuple[Dict, Dict
     """Parse user query and return structured filters plus matching records."""
     parsed = parse_query(query)
     filters = build_filters(parsed)
-    filter_logic = build_filter_logic(filters)
 
     df = load_gold_dataframe()
-    result_df = search_listings(df, filters).limit(limit)
-    return parsed, filters, filter_logic, result_df.toPandas()
+    result_pdf = search_listings(df, filters).limit(limit).toPandas()
+    filter_logic = build_filter_logic(filters)
+
+    # If a near/area query is too strict and yields no rows, relax area constraints while
+    # preserving budget/room/capacity filters so users still get useful suggestions.
+    normalized_query = query.lower()
+    has_near_phrase = any(token in normalized_query for token in ["near", "แถว", "ใกล้"])
+    has_area_constraint = any(k in filters for k in ["neighbourhood_eq", "neighbourhood_in", "bangkok_zone_eq", "zone_code"])
+
+    if result_pdf.empty and has_near_phrase and has_area_constraint:
+        relaxed_filters = dict(filters)
+        for key in ["neighbourhood_eq", "neighbourhood_in", "bangkok_zone_eq", "zone_code", "distance_lt"]:
+            relaxed_filters.pop(key, None)
+
+        result_pdf = search_listings(df, relaxed_filters).limit(limit).toPandas()
+        if not result_pdf.empty:
+            filters = relaxed_filters
+            filter_logic = build_filter_logic(filters) + " [fallback: broadened area]"
+
+    return parsed, filters, filter_logic, result_pdf

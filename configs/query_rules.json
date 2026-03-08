@@ -1,14 +1,20 @@
 {
   "room_type_aliases": {
     "private room": "Private room",
+    "ห้องส่วนตัว": "Private room",
+    "ห้องพักส่วนตัว": "Private room",
     "private": "Private room",
     "room": null,
     "entire home": "Entire home/apt",
     "entire apartment": "Entire home/apt",
+    "ทั้งหลัง": "Entire home/apt",
+    "บ้านทั้งหลัง": "Entire home/apt",
     "entire": "Entire home/apt",
     "shared room": "Shared room",
+    "ห้องรวม": "Shared room",
     "shared": "Shared room",
     "hotel room": "Hotel room",
+    "ห้องพักโรงแรม": "Hotel room",
     "hotel": "Hotel room"
   },
   "price_hints": {
@@ -17,12 +23,17 @@
     "affordable": 1500,
     "luxury": 5000
   },
-  "location_prepositions": ["in", "at", "near"],
+  "location_prepositions": ["in", "at", "near", "แถว", "ใกล้", "ย่าน", "ที่"],
   "location_aliases": {
     "bang kapi": "Bang Kapi",
+    "bangkapi": "Bang Kapi",
+    "บางกะปิ": "Bang Kapi",
     "bang na": "Bang Na",
     "bangna": "Bang Na",
+    "บางนา": "Bang Na",
     "ratchathewi": "Ratchathewi",
-    "sukhumvit": "Vadhana"
+    "ราชเทวี": "Ratchathewi",
+    "sukhumvit": "Vadhana",
+    "สุขุมวิท": "Vadhana"
   }
 }

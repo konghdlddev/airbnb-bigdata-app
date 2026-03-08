@@ -79,7 +79,7 @@ Expected columns include:
 4. Dataset is enriched with `zone_code` using `configs/bangkok_zone_mapping.json`.
 5. Natural language search can detect Bangkok zones (from aliases) and expand them into neighbourhood filters.
 6. Price model is trained with Spark MLlib RandomForestRegressor using zone-aware features.
-7. Streamlit app runs with 3 pages: dashboard, natural language search, price prediction.
+7. Streamlit app runs with 4 pages: dashboard, natural language search, price prediction, recommendations.
 
 ## Zone Search
 
@@ -107,6 +107,21 @@ Supported example queries:
 - `cheap room near rama 9`
 - `private room bang na`
 - `room in old town`
+
+Thai examples:
+
+- `หาห้องแถวบางกะปิ ราคา 300 บาทต่อคืน`
+- `ห้องส่วนตัว ใกล้ bts ราคาไม่เกิน 1200 บาท`
+- `ห้องทั้งหลัง ย่านสุขุมวิท งบ 2000`
+
+Thai parsing support includes:
+
+- location phrases: `แถว`, `ใกล้`, `ย่าน`, `ที่`
+- budget phrases: `ราคา`, `งบ`, `ไม่เกิน`, `บาท`, `ต่อคืน`
+- room type aliases: `ห้องส่วนตัว`, `ห้องรวม`, `ห้องทั้งหลัง`, `ห้องพักโรงแรม`
+
+If an area-based query (`near` / `ใกล้` / `แถว`) is too strict and returns 0 rows,
+the service automatically broadens only the area constraint and keeps budget/room filters.
 
 In Streamlit Natural Language Search, you will see:
 
