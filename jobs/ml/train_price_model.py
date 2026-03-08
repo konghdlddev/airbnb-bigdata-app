@@ -24,6 +24,43 @@ FEATURE_COLUMNS = [
     "distance_to_city_center",
 ]
 
+# Robust outlier controls for training labels (price).
+LOWER_Q = 0.01
+UPPER_Q = 0.99
+IQR_MULTIPLIER = 1.5
+
+
+def apply_price_outlier_handling(df):
+    """Filter and winsorize extreme label outliers to stabilize price predictions."""
+    # Use low relative error so upper-tail quantiles remain reliable under skewed pricing.
+    quantiles = df.approxQuantile("price", [0.25, 0.75, LOWER_Q, UPPER_Q], 0.001)
+    q1, q3, q_low, q_high = quantiles
+    iqr = max(q3 - q1, 1.0)
+
+    iqr_lower = q1 - (IQR_MULTIPLIER * iqr)
+    iqr_upper = q3 + (IQR_MULTIPLIER * iqr)
+
+    lower_bound = max(0.0, min(iqr_lower, q_low))
+    # Keep both statistical robustness (IQR) and high-end market segment (upper quantile).
+    upper_bound = max(lower_bound + 1.0, min(max(iqr_upper, q_high), q3 * 10.0))
+
+    filtered = df.filter((F.col("price") >= F.lit(lower_bound)) & (F.col("price") <= F.lit(upper_bound)))
+    clipped = filtered.withColumn(
+        "price",
+        F.when(F.col("price") < F.lit(q_low), F.lit(q_low))
+        .when(F.col("price") > F.lit(q_high), F.lit(q_high))
+        .otherwise(F.col("price")),
+    )
+
+    return clipped, {
+        "q1": q1,
+        "q3": q3,
+        "q_low": q_low,
+        "q_high": q_high,
+        "lower_bound": lower_bound,
+        "upper_bound": upper_bound,
+    }
+
 
 def build_training_pipeline() -> Pipeline:
     """Build Spark ML pipeline for feature transformation and regression."""
@@ -75,6 +112,7 @@ if __name__ == "__main__":
     spark = get_spark_session("airbnb-train-price-model")
 
     df = spark.read.parquet(settings.gold_data_path).select(*FEATURE_COLUMNS, "price")
+    raw_count = df.count()
 
     numeric_fill = {
         "minimum_nights": 0.0,
@@ -94,6 +132,9 @@ if __name__ == "__main__":
 
     df = df.dropna(subset=["price"])
 
+    df, stats = apply_price_outlier_handling(df)
+    final_count = df.count()
+
     train_df, _ = df.randomSplit([0.8, 0.2], seed=42)
     pipeline = build_training_pipeline()
     model = pipeline.fit(train_df)
@@ -103,5 +144,13 @@ if __name__ == "__main__":
 
     print(f"Model saved to {settings.model_local_path}")
     print(f"Model uploaded to s3://{settings.minio_bucket}/{settings.minio_model_prefix}/")
+    print(
+        "Outlier handling:",
+        {
+            "raw_rows": raw_count,
+            "rows_after_outlier_filter": final_count,
+            **{k: round(float(v), 4) for k, v in stats.items()},
+        },
+    )
 
     spark.stop()
