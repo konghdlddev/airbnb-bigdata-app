@@ -13,6 +13,9 @@ FEATURE_COLUMNS = [
     "minimum_nights",
     "number_of_reviews",
     "availability_365",
+    "distance_to_siam",
+    "distance_to_asok",
+    "distance_to_city_center",
 ]
 
 
@@ -38,6 +41,9 @@ def build_training_pipeline() -> Pipeline:
             "minimum_nights",
             "number_of_reviews",
             "availability_365",
+            "distance_to_siam",
+            "distance_to_asok",
+            "distance_to_city_center",
         ],
         outputCol="features",
     )

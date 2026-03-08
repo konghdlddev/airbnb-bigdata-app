@@ -23,6 +23,13 @@ def search_listings(df: DataFrame, filters: Dict) -> DataFrame:
     if filters.get("neighbourhood_in"):
         result = result.filter(F.col("neighbourhood").isin(filters["neighbourhood_in"]))
 
+    if filters.get("distance_lt"):
+        distance_filter = filters["distance_lt"]
+        distance_col = distance_filter.get("column")
+        threshold = float(distance_filter.get("threshold_km", 0))
+        if distance_col in result.columns:
+            result = result.filter(F.col(distance_col) < F.lit(threshold))
+
     if filters.get("neighbourhood_eq"):
         result = result.filter(F.col("neighbourhood") == filters["neighbourhood_eq"])
 

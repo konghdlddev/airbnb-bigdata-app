@@ -17,6 +17,12 @@ def build_filter_logic(filters: Dict) -> str:
             parts.append(f"zone_code = '{filters['zone_code']}'")
             parts.append(f"neighbourhood IN ({expanded})")
 
+    if filters.get("distance_lt"):
+        distance_filter = filters["distance_lt"]
+        parts.append(
+            f"{distance_filter['column']} < {distance_filter['threshold_km']}"
+        )
+
     if filters.get("neighbourhood_eq"):
         parts.append(f"neighbourhood = '{filters['neighbourhood_eq']}'")
 

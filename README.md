@@ -115,6 +115,52 @@ In Streamlit Natural Language Search, you will see:
 - Parsed query JSON and applied filters JSON
 - Human-readable filter logic (`WHERE ...`)
 
+## Geospatial Features
+
+The ETL pipeline now generates landmark-distance features using the Haversine formula.
+
+Landmarks:
+
+- Siam Center (`13.7466, 100.5347`)
+- Asok (`13.7376, 100.5600`)
+- Silom (`13.7243, 100.5343`)
+- Riverside / Chao Phraya (`13.7308, 100.5093`)
+- Bangkok City Center (`13.7563, 100.5018`)
+
+Generated columns in the gold dataset:
+
+- `distance_to_siam`
+- `distance_to_asok`
+- `distance_to_silom`
+- `distance_to_riverside`
+- `distance_to_city_center`
+
+These features are used by:
+
+- Natural Language Search (landmark proximity filters)
+- Price Prediction model (location intelligence inputs)
+- Dashboard visualization (average price vs distance to city center)
+
+### Landmark Search Queries
+
+Supported examples:
+
+- `room near siam`
+- `cheap room near asok`
+- `private room near silom`
+
+When a landmark is detected, search applies a distance filter (default `< 2 km`), for example:
+
+```python
+df.filter(df.distance_to_siam < 2)
+```
+
+In Streamlit Natural Language Search, you will also see:
+
+- `Parsed Landmark`
+- detected landmark label and distance threshold
+- corresponding filter logic in `WHERE ...`
+
 ## Run Guide
 
 ### 1) Prerequisites

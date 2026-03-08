@@ -49,6 +49,7 @@ NEIGHBOURHOOD_ALIAS = {
     "bangna": "Bang Na",
     "bang na": "Bang Na",
     "bang kapi": "Bang Kapi",
+    "parthum wan": "Pathum Wan",
     "ratchathewi": "Ratchathewi",
     "sukhumvit": "Vadhana",
 }

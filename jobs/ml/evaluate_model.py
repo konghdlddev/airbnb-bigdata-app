@@ -11,11 +11,13 @@ if __name__ == "__main__":
 
     df = spark.read.parquet(settings.gold_data_path).select(
         "room_type",
-        "neighbourhood",
+        "zone_code",
         "minimum_nights",
         "number_of_reviews",
-        "reviews_per_month",
         "availability_365",
+        "distance_to_siam",
+        "distance_to_asok",
+        "distance_to_city_center",
         "price",
     )
 

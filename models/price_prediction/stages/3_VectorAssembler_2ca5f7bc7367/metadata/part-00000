@@ -1,1 +1,0 @@
-{"class":"org.apache.spark.ml.feature.VectorAssembler","timestamp":1772973159807,"sparkVersion":"3.5.1","uid":"VectorAssembler_2ca5f7bc7367","paramMap":{"outputCol":"features","inputCols":["room_type_ohe","zone_code_ohe","minimum_nights","number_of_reviews","availability_365"]},"defaultParamMap":{"handleInvalid":"error","outputCol":"VectorAssembler_2ca5f7bc7367__output"}}

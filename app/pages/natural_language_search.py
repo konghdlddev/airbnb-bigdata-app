@@ -15,6 +15,12 @@ query = st.text_input("Search query", placeholder="entire home in Ratchathewi")
 if query:
     parsed, filters, filter_logic, result_df = run_natural_language_search(query, limit=10)
 
+    if parsed.get("landmark_label") and parsed.get("distance_threshold_km") is not None:
+        st.subheader("Parsed Landmark")
+        st.write(
+            f"Detected Landmark: {parsed['landmark_label']} (within {parsed['distance_threshold_km']} km)"
+        )
+
     if parsed.get("zone_code"):
         st.subheader("Parsed Zone")
         zone_name = parsed.get("zone_name") or parsed["zone_code"]

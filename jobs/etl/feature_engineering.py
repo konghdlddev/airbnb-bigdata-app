@@ -1,13 +1,14 @@
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 
+from configs.geospatial import LANDMARKS, calculate_distance
 from configs.settings import settings
 from configs.spark_session import get_spark_session
 
 
 def add_features(df: DataFrame) -> DataFrame:
-    """Create derived business features used by analytics and ML."""
-    return (
+    """Create derived business features used by analytics, search, and ML."""
+    enriched = (
         df.withColumn(
             "price_category",
             F.when(F.col("price") < 1000, F.lit("budget"))
@@ -21,6 +22,20 @@ def add_features(df: DataFrame) -> DataFrame:
         )
         .withColumn("occupancy_rate", F.lit(365.0) - F.coalesce(F.col("availability_365"), F.lit(0.0)))
     )
+
+    # Distance to key landmarks helps capture location attractiveness and accessibility.
+    for landmark in LANDMARKS.values():
+        enriched = enriched.withColumn(
+            landmark["distance_column"],
+            calculate_distance(
+                F.col("latitude"),
+                F.col("longitude"),
+                float(landmark["lat"]),
+                float(landmark["lng"]),
+            ),
+        )
+
+    return enriched
 
 
 if __name__ == "__main__":

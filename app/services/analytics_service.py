@@ -47,3 +47,22 @@ def listings_by_neighbourhood(limit: int = 15):
 def room_type_distribution():
     """Return room-type distribution for charting."""
     return load_gold_dataframe().groupBy("room_type").count().toPandas()
+
+
+def average_price_vs_distance_to_city_center(bucket_km: float = 1.0):
+    """Aggregate average price by distance buckets from Bangkok city center."""
+    df = load_gold_dataframe()
+    if "distance_to_city_center" not in df.columns:
+        return None
+
+    bucket_expr = (
+        F.floor(F.col("distance_to_city_center") / F.lit(bucket_km)) * F.lit(bucket_km)
+    ).alias("distance_bucket_km")
+
+    return (
+        df.select(bucket_expr, "price")
+        .groupBy("distance_bucket_km")
+        .agg(F.avg("price").alias("avg_price"), F.count("*").alias("listing_count"))
+        .orderBy(F.col("distance_bucket_km").asc())
+        .toPandas()
+    )

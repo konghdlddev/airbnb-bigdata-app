@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 from typing import Dict, Optional
 
+from configs.geospatial import LANDMARKS, NEAR_DISTANCE_KM
 from configs.zone_mapping import detect_zone
 
 
@@ -62,21 +63,65 @@ def _extract_room_type(query: str, rules: Dict) -> Optional[str]:
     return None
 
 
+def _extract_landmark(query: str) -> Optional[Dict[str, object]]:
+    """Detect landmark intent for queries such as 'room near siam'."""
+    normalized = " ".join(query.lower().split())
+    for landmark_key, landmark in LANDMARKS.items():
+        for alias in landmark.get("aliases", []):
+            alias_norm = " ".join(str(alias).lower().split())
+            if not alias_norm:
+                continue
+
+            # Prefer proximity phrasing but still allow plain alias mention fallback.
+            if f"near {alias_norm}" in normalized or re.search(rf"\b{re.escape(alias_norm)}\b", normalized):
+                return {
+                    "landmark_key": landmark_key,
+                    "landmark_label": landmark["label"],
+                    "distance_column": landmark["distance_column"],
+                    "distance_threshold_km": float(NEAR_DISTANCE_KM),
+                }
+    return None
+
+
 def parse_query(user_query: str) -> Dict[str, Optional[object]]:
     """Parse natural language query into structured filter fields."""
     q = user_query.strip().lower()
     rules = _load_rules()
 
     zone_match = detect_zone(q)
+    landmark_match = _extract_landmark(q)
     room_type = _extract_room_type(q, rules)
     price_max = _extract_price_max(q, rules)
     location = _extract_location(q, rules)
+
+    has_exact_location_intent = re.search(r"\b(?:in|at)\b", q) is not None
+    has_near_intent = re.search(r"\bnear\b", q) is not None
 
     # If a query clearly mentions a zone alias, prefer zone-based search over exact location.
     zone_code = zone_match["zone_code"] if zone_match else None
     zone_name = zone_match["zone_name"] if zone_match else None
     zone_neighbourhoods = zone_match["neighbourhoods"] if zone_match else []
-    if zone_code:
+
+    # Exact location phrasing (in/at) should stay precise and not be widened by zone expansion.
+    if has_exact_location_intent and location:
+        zone_code = None
+        zone_name = None
+        zone_neighbourhoods = []
+
+    # Near phrasing should be broader and should not force strict neighbourhood equality.
+    if has_near_intent:
+        location = None
+
+    if zone_code and not has_exact_location_intent:
+        location = None
+
+    landmark_key = landmark_match["landmark_key"] if landmark_match else None
+    landmark_label = landmark_match["landmark_label"] if landmark_match else None
+    distance_column = landmark_match["distance_column"] if landmark_match else None
+    distance_threshold_km = (
+        landmark_match["distance_threshold_km"] if landmark_match else None
+    )
+    if landmark_key:
         location = None
 
     return {
@@ -84,6 +129,10 @@ def parse_query(user_query: str) -> Dict[str, Optional[object]]:
         "zone_code": zone_code,
         "zone_name": zone_name,
         "zone_neighbourhoods": zone_neighbourhoods,
+        "landmark_key": landmark_key,
+        "landmark_label": landmark_label,
+        "distance_column": distance_column,
+        "distance_threshold_km": distance_threshold_km,
         "location": location,
         "room_type": room_type,
         "price_max": price_max,
