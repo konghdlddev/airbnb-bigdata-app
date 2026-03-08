@@ -1,0 +1,49 @@
+{
+  "zones": {
+    "SUKHUMVIT": {
+      "aliases": ["sukhumvit", "asok", "phrom phong", "thonglor", "ekkamai"],
+      "neighbourhood_aliases": ["vadhana", "khlong toei", "phra khanong"],
+      "landmark_refs": ["asok", "phrom_phong", "thonglor", "ekkamai"]
+    },
+    "CBD": {
+      "aliases": ["cbd", "city center", "downtown", "siam", "pathum wan"],
+      "neighbourhood_aliases": ["pathum wan", "ratchathewi", "bang rak"],
+      "landmark_refs": ["siam_center", "city_center"]
+    },
+    "SILOM_SATHORN": {
+      "aliases": ["silom", "sathorn", "sathon", "chong nonsi"],
+      "neighbourhood_aliases": ["sathon", "bang rak", "yan nawa"],
+      "landmark_refs": ["silom", "sathorn"]
+    },
+    "RIVERSIDE": {
+      "aliases": ["riverside", "river", "chao phraya"],
+      "neighbourhood_aliases": ["khlong san", "bang kho laem", "thon buri"],
+      "landmark_refs": ["riverside"]
+    },
+    "RATCHADA": {
+      "aliases": ["ratchada", "rama 9", "phra ram 9"],
+      "neighbourhood_aliases": ["huai khwang", "din daeng"],
+      "landmark_refs": ["asok", "victory_monument"]
+    },
+    "CHATUCHAK": {
+      "aliases": ["chatuchak", "mo chit"],
+      "neighbourhood_aliases": ["chatuchak", "lat phrao", "wang thonglang"],
+      "landmark_refs": ["chatuchak"]
+    },
+    "BANGNA": {
+      "aliases": ["bang na", "bangna", "bearing"],
+      "neighbourhood_aliases": ["bang na", "prawet"],
+      "landmark_refs": ["bangna"]
+    },
+    "OLD_TOWN": {
+      "aliases": ["old town", "khao san", "grand palace", "wat pho", "phra nakhon"],
+      "neighbourhood_aliases": ["phra nakhon", "pom prap sattru phai", "samphanthawong"],
+      "landmark_refs": ["grand_palace", "wat_pho", "khao_san"]
+    },
+    "ARI_VICTORY": {
+      "aliases": ["ari", "victory monument", "phaya thai"],
+      "neighbourhood_aliases": ["phaya thai", "dusit"],
+      "landmark_refs": ["ari", "victory_monument"]
+    }
+  }
+}

@@ -16,12 +16,20 @@ def build_filter_logic(filters: Dict) -> str:
             expanded = ", ".join([f"'{n}'" for n in neighbourhoods])
             parts.append(f"zone_code = '{filters['zone_code']}'")
             parts.append(f"neighbourhood IN ({expanded})")
+        if filters.get("bangkok_zone_eq"):
+            parts.append(f"bangkok_zone = '{filters['bangkok_zone_eq']}'")
 
     if filters.get("distance_lt"):
         distance_filter = filters["distance_lt"]
         parts.append(
             f"{distance_filter['column']} < {distance_filter['threshold_km']}"
         )
+
+    if filters.get("distance_to_nearest_bts_lt") is not None:
+        parts.append(f"distance_to_nearest_bts < {filters['distance_to_nearest_bts_lt']}")
+
+    if filters.get("distance_to_nearest_mrt_lt") is not None:
+        parts.append(f"distance_to_nearest_mrt < {filters['distance_to_nearest_mrt_lt']}")
 
     if filters.get("neighbourhood_eq"):
         parts.append(f"neighbourhood = '{filters['neighbourhood_eq']}'")
@@ -31,6 +39,18 @@ def build_filter_logic(filters: Dict) -> str:
 
     if filters.get("price_lte") is not None:
         parts.append(f"price <= {int(filters['price_lte']) if float(filters['price_lte']).is_integer() else filters['price_lte']}")
+
+    if filters.get("price_gte") is not None:
+        parts.append(f"price >= {int(filters['price_gte']) if float(filters['price_gte']).is_integer() else filters['price_gte']}")
+
+    if filters.get("bedrooms_gte") is not None:
+        parts.append(f"bedrooms >= {filters['bedrooms_gte']}")
+
+    if filters.get("accommodates_gte") is not None:
+        parts.append(f"accommodates >= {filters['accommodates_gte']}")
+
+    if filters.get("sort_by"):
+        parts.append(f"ORDER BY {filters['sort_by']}")
 
     if not parts:
         return "WHERE TRUE"

@@ -5,8 +5,8 @@ from pyspark.ml import PipelineModel
 from pyspark.sql import functions as F
 
 from app.services.analytics_service import _spark
+from configs.geo_intelligence import neighbourhood_to_zone_map
 from configs.settings import settings
-from configs.zone_mapping import map_neighbourhood_to_zone_code
 
 
 @lru_cache(maxsize=1)
@@ -77,9 +77,10 @@ def _global_distance_defaults() -> Dict[str, float]:
 
 def predict_listing_price(payload: Dict) -> float:
     """Predict listing price from user inputs."""
-    zone_code = payload.get("zone_code")
+    zone_code = payload.get("bangkok_zone")
     if not zone_code:
-        zone_code = map_neighbourhood_to_zone_code(payload.get("neighbourhood", "")) or "UNKNOWN"
+        n_key = " ".join(str(payload.get("neighbourhood", "")).lower().split())
+        zone_code = neighbourhood_to_zone_map().get(n_key, "OTHER")
 
     neighbourhood = payload["neighbourhood"]
     neighbourhood_defaults = _distance_defaults_by_neighbourhood().get(neighbourhood, {})
@@ -90,10 +91,15 @@ def predict_listing_price(payload: Dict) -> float:
 
     row = {
         "room_type": payload["room_type"],
-        "zone_code": zone_code,
+        "bangkok_zone": zone_code,
         "minimum_nights": float(payload["minimum_nights"]),
         "number_of_reviews": float(payload["number_of_reviews"]),
+        "reviews_per_month": float(payload.get("reviews_per_month", 0.0)),
         "availability_365": float(payload["availability_365"]),
+        "distance_to_nearest_bts": float(payload.get("distance_to_nearest_bts", 10.0)),
+        "distance_to_nearest_mrt": float(payload.get("distance_to_nearest_mrt", 10.0)),
+        "transit_accessibility_score": float(payload.get("transit_accessibility_score", 0.0)),
+        "is_tourist_area_num": 1.0 if bool(payload.get("is_tourist_area", False)) else 0.0,
         "distance_to_siam": _distance_value("distance_to_siam"),
         "distance_to_asok": _distance_value("distance_to_asok"),
         "distance_to_city_center": _distance_value("distance_to_city_center"),

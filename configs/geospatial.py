@@ -3,45 +3,24 @@ from typing import Dict, Union
 from pyspark.sql.column import Column
 from pyspark.sql import functions as F
 
+from configs.geo_intelligence import get_landmarks
 
-# Key Bangkok landmarks used for location intelligence features.
-LANDMARKS: Dict[str, Dict[str, Union[str, float, list]]] = {
-    "siam": {
-        "label": "Siam Center",
-        "lat": 13.7466,
-        "lng": 100.5347,
-        "aliases": ["siam", "siam center"],
-        "distance_column": "distance_to_siam",
-    },
-    "asok": {
-        "label": "Asok",
-        "lat": 13.7376,
-        "lng": 100.5600,
-        "aliases": ["asok", "อโศก"],
-        "distance_column": "distance_to_asok",
-    },
-    "silom": {
-        "label": "Silom",
-        "lat": 13.7243,
-        "lng": 100.5343,
-        "aliases": ["silom", "si lom", "สีลม"],
-        "distance_column": "distance_to_silom",
-    },
-    "riverside": {
-        "label": "Riverside (Chao Phraya)",
-        "lat": 13.7308,
-        "lng": 100.5093,
-        "aliases": ["riverside", "chao phraya", "river"],
-        "distance_column": "distance_to_riverside",
-    },
-    "city_center": {
-        "label": "Bangkok City Center",
-        "lat": 13.7563,
-        "lng": 100.5018,
-        "aliases": ["city center", "bangkok city center", "downtown"],
-        "distance_column": "distance_to_city_center",
-    },
-}
+
+def _build_landmarks() -> Dict[str, Dict[str, Union[str, float, list]]]:
+    rows = get_landmarks()
+    output: Dict[str, Dict[str, Union[str, float, list]]] = {}
+    for key, meta in rows.items():
+        output[key] = {
+            "label": key.replace("_", " ").title(),
+            "lat": float(meta["lat"]),
+            "lng": float(meta["lng"]),
+            "aliases": meta.get("aliases", []),
+            "distance_column": f"distance_to_{key}",
+        }
+    return output
+
+
+LANDMARKS: Dict[str, Dict[str, Union[str, float, list]]] = _build_landmarks()
 
 NEAR_DISTANCE_KM = 2.0
 

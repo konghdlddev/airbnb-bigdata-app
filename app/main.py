@@ -13,10 +13,12 @@ This app combines:
 - Spark-based big data analytics
 - Natural language listing search
 - Price prediction with Spark MLlib
+- Geo-aware listing recommendations
 
 Use the left sidebar to open:
 - Dashboard
 - Natural Language Search
 - Price Prediction
+- Recommendations
 """
 )

@@ -23,11 +23,17 @@ if query:
 
     if parsed.get("zone_code"):
         st.subheader("Parsed Zone")
-        zone_name = parsed.get("zone_name") or parsed["zone_code"]
-        st.write(f"Detected Zone: {zone_name}")
+        st.write(f"Detected Zone: {parsed['zone_code']}")
         st.write("Neighbourhoods used:")
-        for neighbourhood in parsed.get("zone_neighbourhoods", []):
+        for neighbourhood in filters.get("neighbourhood_in", []):
             st.write(f"- {neighbourhood}")
+
+    if parsed.get("near_bts_km") is not None or parsed.get("near_mrt_km") is not None:
+        st.subheader("Transit Intent")
+        if parsed.get("near_bts_km") is not None:
+            st.write(f"Near BTS threshold: {parsed['near_bts_km']} km")
+        if parsed.get("near_mrt_km") is not None:
+            st.write(f"Near MRT threshold: {parsed['near_mrt_km']} km")
 
     col1, col2 = st.columns(2)
     with col1:

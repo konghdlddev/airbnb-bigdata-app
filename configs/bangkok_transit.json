@@ -1,0 +1,24 @@
+{
+  "stations": [
+    { "station_name": "Siam", "line": "Sukhumvit/Silom", "mode": "BTS", "lat": 13.7467, "lng": 100.5349 },
+    { "station_name": "Asok", "line": "Sukhumvit", "mode": "BTS", "lat": 13.7365, "lng": 100.5601 },
+    { "station_name": "Phrom Phong", "line": "Sukhumvit", "mode": "BTS", "lat": 13.7306, "lng": 100.5696 },
+    { "station_name": "Thong Lo", "line": "Sukhumvit", "mode": "BTS", "lat": 13.7241, "lng": 100.5788 },
+    { "station_name": "Ekkamai", "line": "Sukhumvit", "mode": "BTS", "lat": 13.7195, "lng": 100.5853 },
+    { "station_name": "Ari", "line": "Sukhumvit", "mode": "BTS", "lat": 13.7797, "lng": 100.5447 },
+    { "station_name": "Victory Monument", "line": "Sukhumvit", "mode": "BTS", "lat": 13.7628, "lng": 100.5383 },
+    { "station_name": "Mo Chit", "line": "Sukhumvit", "mode": "BTS", "lat": 13.8026, "lng": 100.5538 },
+    { "station_name": "Bang Na", "line": "Sukhumvit", "mode": "BTS", "lat": 13.6681, "lng": 100.6049 },
+    { "station_name": "Bearing", "line": "Sukhumvit", "mode": "BTS", "lat": 13.6612, "lng": 100.6010 },
+    { "station_name": "Sala Daeng", "line": "Silom", "mode": "BTS", "lat": 13.7286, "lng": 100.5341 },
+    { "station_name": "Chong Nonsi", "line": "Silom", "mode": "BTS", "lat": 13.7237, "lng": 100.5292 },
+
+    { "station_name": "Chatuchak Park", "line": "Blue", "mode": "MRT", "lat": 13.8023, "lng": 100.5537 },
+    { "station_name": "Lumphini", "line": "Blue", "mode": "MRT", "lat": 13.7256, "lng": 100.5457 },
+    { "station_name": "Hua Lamphong", "line": "Blue", "mode": "MRT", "lat": 13.7377, "lng": 100.5172 },
+    { "station_name": "Phetchaburi", "line": "Blue", "mode": "MRT", "lat": 13.7487, "lng": 100.5630 },
+    { "station_name": "Thailand Cultural Centre", "line": "Blue", "mode": "MRT", "lat": 13.7666, "lng": 100.5701 },
+    { "station_name": "Sukhumvit", "line": "Blue", "mode": "MRT", "lat": 13.7370, "lng": 100.5603 },
+    { "station_name": "Phra Ram 9", "line": "Blue", "mode": "MRT", "lat": 13.7578, "lng": 100.5654 }
+  ]
+}

@@ -1,3 +1,5 @@
+from pyspark.sql import functions as F
+
 from pyspark.ml import PipelineModel
 from pyspark.ml.evaluation import RegressionEvaluator
 
@@ -11,15 +13,34 @@ if __name__ == "__main__":
 
     df = spark.read.parquet(settings.gold_data_path).select(
         "room_type",
-        "zone_code",
+        "bangkok_zone",
         "minimum_nights",
         "number_of_reviews",
+        "reviews_per_month",
         "availability_365",
+        "distance_to_nearest_bts",
+        "distance_to_nearest_mrt",
+        "transit_accessibility_score",
+        "is_tourist_area",
         "distance_to_siam",
         "distance_to_asok",
         "distance_to_city_center",
         "price",
     )
+
+    df = df.fillna(
+        {
+            "reviews_per_month": 0.0,
+            "distance_to_nearest_bts": 20.0,
+            "distance_to_nearest_mrt": 20.0,
+            "transit_accessibility_score": 0.0,
+            "distance_to_siam": 20.0,
+            "distance_to_asok": 20.0,
+            "distance_to_city_center": 20.0,
+        }
+    )
+    df = df.fillna({"room_type": "Unknown", "bangkok_zone": "OTHER"})
+    df = df.withColumn("is_tourist_area_num", F.when(F.col("is_tourist_area") == True, F.lit(1.0)).otherwise(F.lit(0.0)))
 
     _, test_df = df.randomSplit([0.8, 0.2], seed=42)
     model = PipelineModel.load(settings.model_local_path)

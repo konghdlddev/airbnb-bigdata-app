@@ -1,0 +1,18 @@
+{
+  "siam_center": { "lat": 13.7466, "lng": 100.5347, "aliases": ["siam", "siam center"] },
+  "asok": { "lat": 13.7376, "lng": 100.5600, "aliases": ["asok", "อโศก"] },
+  "silom": { "lat": 13.7243, "lng": 100.5343, "aliases": ["silom", "si lom", "สีลม"] },
+  "sathorn": { "lat": 13.7240, "lng": 100.5340, "aliases": ["sathorn", "sathon", "สาทร"] },
+  "riverside": { "lat": 13.7308, "lng": 100.5093, "aliases": ["riverside", "river", "chao phraya", "เจ้าพระยา"] },
+  "chatuchak": { "lat": 13.8163, "lng": 100.5601, "aliases": ["chatuchak", "จตุจักร", "mo chit"] },
+  "bangna": { "lat": 13.6680, "lng": 100.6340, "aliases": ["bang na", "bangna", "บางนา"] },
+  "grand_palace": { "lat": 13.7500, "lng": 100.4913, "aliases": ["grand palace", "พระบรมมหาราชวัง"] },
+  "wat_pho": { "lat": 13.7465, "lng": 100.4930, "aliases": ["wat pho", "วัดโพธิ์"] },
+  "khao_san": { "lat": 13.7589, "lng": 100.4976, "aliases": ["khao san", "khaosan", "ข้าวสาร"] },
+  "victory_monument": { "lat": 13.7628, "lng": 100.5383, "aliases": ["victory monument", "อนุสาวรีย์ชัย"] },
+  "ari": { "lat": 13.7797, "lng": 100.5447, "aliases": ["ari", "อารีย์"] },
+  "phrom_phong": { "lat": 13.7306, "lng": 100.5696, "aliases": ["phrom phong", "พร้อมพงษ์"] },
+  "thonglor": { "lat": 13.7242, "lng": 100.5789, "aliases": ["thonglor", "ทองหล่อ", "thong lo"] },
+  "ekkamai": { "lat": 13.7195, "lng": 100.5853, "aliases": ["ekkamai", "เอกมัย"] },
+  "city_center": { "lat": 13.7563, "lng": 100.5018, "aliases": ["city center", "downtown", "bangkok city center"] }
+}

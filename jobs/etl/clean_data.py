@@ -27,6 +27,8 @@ EXPECTED_COLUMNS = [
     "calculated_host_listings_count",
     "availability_365",
     "number_of_reviews_ltm",
+    "bedrooms",
+    "accommodates",
 ]
 
 NUMERIC_CASTS: Dict[str, object] = {
@@ -41,6 +43,8 @@ NUMERIC_CASTS: Dict[str, object] = {
     "calculated_host_listings_count": IntegerType(),
     "availability_365": IntegerType(),
     "number_of_reviews_ltm": IntegerType(),
+    "bedrooms": IntegerType(),
+    "accommodates": IntegerType(),
 }
 
 STRING_COLUMNS = ["name", "host_name", "neighbourhood", "room_type", "last_review"]

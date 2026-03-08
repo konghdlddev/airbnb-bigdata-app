@@ -42,7 +42,7 @@
 
 ### 2.2 Feature Engineering
 
-ไฟล์หลัก: `jobs/etl/feature_engineering.py`, `configs/geospatial.py`
+ไฟล์หลัก: `jobs/etl/feature_engineering.py`, `jobs/etl/geospatial_features.py`, `configs/geospatial.py`, `configs/geo_intelligence.py`
 
 ฟีเจอร์ที่เพิ่ม:
 
@@ -52,19 +52,19 @@
 
 Geospatial features (Haversine):
 
-- `distance_to_siam`
-- `distance_to_asok`
-- `distance_to_silom`
-- `distance_to_riverside`
-- `distance_to_city_center`
+- landmark distances เช่น `distance_to_siam`, `distance_to_asok`, `distance_to_silom`, `distance_to_riverside`, `distance_to_bangna`, `distance_to_city_center`
+- transit distances เช่น `distance_to_nearest_bts`, `distance_to_nearest_mrt`
+- nearest station เช่น `nearest_bts_station`, `nearest_mrt_station`
+- walkability flags เช่น `is_walkable_to_bts`, `is_walkable_to_mrt`
+- `transit_accessibility_score`
+- `bangkok_zone` (smart-zone classification)
+- `is_tourist_area`
 
-Landmarks ที่ใช้:
+Landmarks/Geo config ที่ใช้:
 
-- Siam Center
-- Asok
-- Silom
-- Riverside (Chao Phraya)
-- Bangkok City Center
+- `configs/bangkok_landmarks.json`
+- `configs/bangkok_transit.json`
+- `configs/bangkok_zones.json`
 
 จากนั้นเขียนผลเป็น Gold Parquet และอัปโหลดไป MinIO
 
@@ -75,10 +75,13 @@ Landmarks ที่ใช้:
 ### 3.1 Parser ตรวจจับอะไรบ้าง
 
 - `room_type` (เช่น private room, entire home)
-- `price_max` (under/below/less than และตัวเลขในประโยค)
+- `price_max` / `price range` (under/below/less than, between x-y)
 - `location` (pattern `in ...`, `at ...`)
 - `zone_code` จาก alias โซน (เช่น sukhumvit -> SUK)
 - `landmark` สำหรับ query แบบ `near ...` (เช่น near siam)
+- `bedrooms` และ `accommodates`
+- `near bts` / `near mrt`
+- sort intent เช่น `cheap`, `popular`
 
 ### 3.2 Intent Rules สำคัญ (แก้ conflict แล้ว)
 
@@ -88,6 +91,7 @@ Landmarks ที่ใช้:
 - ถ้า query มี `near`:
   - ใช้ broader logic (zone/landmark distance)
   - ไม่บังคับ exact location
+  - landmark distance จะทำงานเฉพาะกรณี `near` เพื่อลด conflict กับ `in/at`
 
 ตัวอย่าง:
 
@@ -98,13 +102,16 @@ Landmarks ที่ใช้:
 
 - `neighbourhood_eq` (exact match)
 - `neighbourhood_in` (จาก zone expansion)
-- `price_lte`
+- `price_lte`, `price_gte`
 - `room_type`
 - `distance_lt` (เช่น `distance_to_siam < 2`)
+- `distance_to_nearest_bts_lt`, `distance_to_nearest_mrt_lt`
+- `bedrooms_gte`, `accommodates_gte`
+- sort ตาม `price` หรือ `popularity_score`
 
 คอลัมน์ที่แสดงผลลัพธ์หลัก:
 
-- `id`, `name`, `neighbourhood`, `zone_code`, `room_type`, `price`, `minimum_nights`, `number_of_reviews`
+- `id`, `name`, `neighbourhood`, `zone_code`, `bangkok_zone`, `room_type`, `price`, `minimum_nights`, `number_of_reviews`, `distance_to_nearest_bts`, `distance_to_nearest_mrt`, `transit_accessibility_score`, `bedrooms`, `accommodates`
 
 ## 4) Zone Mapping Logic
 
@@ -124,18 +131,23 @@ Landmarks ที่ใช้:
 
 - Categorical:
   - `room_type`
-  - `zone_code`
+  - `bangkok_zone`
 - Numeric:
   - `minimum_nights`
   - `number_of_reviews`
+  - `reviews_per_month`
   - `availability_365`
   - `distance_to_siam`
   - `distance_to_asok`
   - `distance_to_city_center`
+  - `distance_to_nearest_bts`
+  - `distance_to_nearest_mrt`
+  - `transit_accessibility_score`
+  - `is_tourist_area_num`
 
 ### 5.2 Pipeline
 
-1. `StringIndexer` สำหรับ `room_type`, `zone_code`
+1. `StringIndexer` สำหรับ `room_type`, `bangkok_zone`
 2. `OneHotEncoder`
 3. `VectorAssembler`
 4. `RandomForestRegressor`
@@ -143,7 +155,7 @@ Landmarks ที่ใช้:
 ### 5.3 Prediction Service
 
 - รับ input จากฟอร์ม
-- ถ้าไม่มี `zone_code` จะ map จาก `neighbourhood`
+- ถ้าไม่มี `bangkok_zone` จะ infer จาก `neighbourhood`
 - distance features ใช้ค่าเฉลี่ยตาม neighbourhood (fallback เป็นค่าเฉลี่ย global)
 - ส่งเข้า model แล้วคืนราคา predicted
 
@@ -160,6 +172,12 @@ Landmarks ที่ใช้:
 - listings by neighbourhood
 - room type distribution
 - average price vs distance to city center
+- average price by bangkok_zone
+- listings count by zone
+- price vs nearest BTS
+- price vs transit accessibility score
+- tourist vs non-tourist pricing
+- listings geo map
 
 ### 6.2 Natural Language Search
 
@@ -182,6 +200,19 @@ Landmarks ที่ใช้:
 - area dropdown จากข้อมูลจริง
 - แบ่ง section เป็น Listing Details / Popularity / Availability
 - แสดงราคาที่คาดการณ์ต่อคืน
+
+### 6.4 Recommendations (ใหม่)
+
+ไฟล์: `app/pages/recommendations.py`, `app/services/recommendation_service.py`
+
+หลักการแนะนำแบบ geo-aware:
+
+- zone similarity (`bangkok_zone`)
+- room type similarity
+- price similarity
+- distance-to-city-center similarity
+- transit accessibility similarity
+- tourist-area profile similarity
 
 ## 7) Docker Runtime Logic
 
@@ -226,5 +257,8 @@ docker compose exec -T streamlit bash -lc "python jobs/etl/clean_data.py && pyth
 - `validate_zone_integration.py`
 - `validate_geospatial_features.py`
 - `validate_location_intent.py`
+- `validate_zone_classification.py`
+- `validate_geo_search_queries.py`
+- `validate_transit_distance.py`
 
 ใช้สำหรับเช็ก parser/filter/output ตาม scenario สำคัญ
