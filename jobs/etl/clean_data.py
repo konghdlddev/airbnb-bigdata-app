@@ -80,7 +80,6 @@ def normalize_neighbourhood(df: DataFrame) -> DataFrame:
         F.coalesce(alias_expr[F.lower(F.col("neighbourhood"))], F.col("neighbourhood")),
     )
 
-
 def drop_accidental_columns(df: DataFrame) -> DataFrame:
     """Drop accidental index columns (for example _c0, unnamed columns)."""
     keep_cols = []
