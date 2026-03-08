@@ -1,24 +1,24 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="Bangkok Airbnb Big Data App",
+    page_title="ระบบวิเคราะห์ Airbnb กรุงเทพ",
     page_icon="🏠",
     layout="wide",
 )
 
-st.title("Bangkok Airbnb Big Data Analytics")
+st.title("ระบบวิเคราะห์ข้อมูล Airbnb กรุงเทพ")
 st.markdown(
     """
-This app combines:
-- Spark-based big data analytics
-- Natural language listing search
-- Price prediction with Spark MLlib
-- Geo-aware listing recommendations
+แอปนี้ประกอบด้วย:
+- การวิเคราะห์ข้อมูลขนาดใหญ่ด้วย Spark
+- การค้นหาที่พักด้วยภาษาธรรมชาติ
+- การทำนายราคาด้วย Spark MLlib
+- ระบบแนะนำที่พักแบบอ้างอิงภูมิศาสตร์
 
-Use the left sidebar to open:
-- Dashboard
-- Natural Language Search
-- Price Prediction
-- Recommendations
+เลือกเมนูจากแถบด้านซ้าย:
+- แดชบอร์ด
+- ค้นหาภาษาธรรมชาติ
+- ทำนายราคา
+- แนะนำที่พัก
 """
 )

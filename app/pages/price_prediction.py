@@ -2,42 +2,42 @@ import streamlit as st
 
 from app.services.prediction_service import get_area_options, predict_listing_price
 
-st.title("Price Prediction")
-st.caption("Estimate listing price based on listing attributes.")
+st.title("ทำนายราคา")
+st.caption("ประเมินราคาที่พักจากคุณลักษณะของประกาศ")
 
 area_options = get_area_options()
 default_area = "Ratchathewi" if "Ratchathewi" in area_options else area_options[0]
 
 with st.form("price_prediction_form"):
-    st.subheader("Section 1: Listing Details")
+    st.subheader("ส่วนที่ 1: รายละเอียดที่พัก")
     room_type = st.selectbox(
-        "Room Type",
+        "ประเภทห้อง",
         ["Entire home/apt", "Private room", "Shared room"],
         index=0,
     )
-    st.caption("The type of accommodation offered.")
+    st.caption("ประเภทที่พักที่เปิดให้จอง")
 
-    neighbourhood = st.selectbox("Area", options=area_options, index=area_options.index(default_area))
-    st.caption("The neighbourhood where the listing is located.")
+    neighbourhood = st.selectbox("พื้นที่", options=area_options, index=area_options.index(default_area))
+    st.caption("เขตที่ตั้งของที่พัก")
 
     minimum_nights = st.number_input(
-        "Minimum Stay (Nights)", min_value=1, max_value=365, value=2
+        "จำนวนคืนขั้นต่ำ", min_value=1, max_value=365, value=2
     )
-    st.caption("Minimum number of nights guests must book.")
+    st.caption("จำนวนคืนขั้นต่ำที่ผู้เข้าพักต้องจอง")
 
-    st.subheader("Section 2: Popularity")
+    st.subheader("ส่วนที่ 2: ความนิยม")
     number_of_reviews = st.number_input(
-        "Total Reviews", min_value=0, max_value=10000, value=20
+        "จำนวนรีวิวทั้งหมด", min_value=0, max_value=10000, value=20
     )
-    st.caption("Total number of guest reviews for the listing.")
+    st.caption("จำนวนรีวิวทั้งหมดของประกาศนี้")
 
-    st.subheader("Section 3: Availability")
+    st.subheader("ส่วนที่ 3: ความพร้อมให้จอง")
     availability_365 = st.slider(
-        "Available Days per Year", min_value=0, max_value=365, value=180, step=1
+        "จำนวนวันที่เปิดจองต่อปี", min_value=0, max_value=365, value=180, step=1
     )
-    st.caption("How many days the listing is available for booking in a year.")
+    st.caption("จำนวนวันที่เปิดให้จองได้ภายใน 1 ปี")
 
-    submit = st.form_submit_button("Predict Price")
+    submit = st.form_submit_button("ทำนายราคา")
 
 if submit:
     payload = {
@@ -49,18 +49,18 @@ if submit:
     }
     predicted_price = predict_listing_price(payload)
 
-    st.subheader("Predicted Price per Night")
-    st.success(f"Predicted Price: {predicted_price:,.0f} THB per night")
-    st.info("This estimate is based on location, room type, popularity, and availability.")
+    st.subheader("ราคาที่คาดการณ์ต่อคืน")
+    st.success(f"ราคาที่คาดการณ์: {predicted_price:,.0f} บาท/คืน")
+    st.info("การประเมินนี้อิงจากทำเล ประเภทห้อง ความนิยม และความพร้อมให้จอง")
 
 st.markdown("---")
 st.markdown(
     """
-**Example Scenario**
+**ตัวอย่างข้อมูล**
 
-Entire home in Ratchathewi  
-Minimum stay: 2 nights  
-Reviews: 20  
-Available days: 180
+ที่พักทั้งหลังในเขตราชเทวี  
+พักขั้นต่ำ: 2 คืน  
+รีวิว: 20  
+วันเปิดจอง: 180
 """
 )

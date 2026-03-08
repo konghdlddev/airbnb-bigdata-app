@@ -25,8 +25,8 @@ from app.services.analytics_service import (
     tourist_area_price_comparison,
 )
 
-st.title("Dashboard")
-st.caption("Overview of listings, prices, and distribution patterns.")
+st.title("แดชบอร์ด")
+st.caption("ภาพรวมจำนวนประกาศ ราคา และรูปแบบการกระจายตัวของข้อมูล")
 
 kpis = get_kpis()
 show_main_metrics(kpis["total_listings"], kpis["average_price"])
