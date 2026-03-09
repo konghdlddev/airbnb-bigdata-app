@@ -41,6 +41,70 @@ def get_listing_details(listing_id: int) -> Optional[Dict]:
     return row.iloc[0].to_dict()
 
 
+def get_zone_options() -> List[str]:
+    """Return sorted zone options from curated dataset."""
+    df = load_gold_dataframe()
+    if "bangkok_zone" not in df.columns:
+        return []
+    rows = (
+        df.select("bangkok_zone")
+        .dropna(subset=["bangkok_zone"])
+        .distinct()
+        .orderBy("bangkok_zone")
+        .toPandas()
+    )
+    return [str(x) for x in rows["bangkok_zone"].tolist()]
+
+
+def get_price_bounds() -> Dict[str, float]:
+    """Get min/max price bounds for UI sliders."""
+    df = load_gold_dataframe()
+    row = df.agg(F.min("price").alias("min_price"), F.max("price").alias("max_price")).first()
+    min_price = float(row["min_price"] or 0.0)
+    max_price = float(row["max_price"] or 0.0)
+    return {"min_price": min_price, "max_price": max_price}
+
+
+def recommend_by_zone_and_price(
+    zone_code: str,
+    min_price: float,
+    max_price: float,
+    limit: int = 10,
+):
+    """Recommend listings by selected zone and budget range."""
+    df = load_gold_dataframe()
+
+    if "bangkok_zone" not in df.columns:
+        return None
+
+    low = float(min(min_price, max_price))
+    high = float(max(min_price, max_price))
+    target_price = (low + high) / 2.0
+
+    out = df.filter(F.col("bangkok_zone") == zone_code).filter((F.col("price") >= low) & (F.col("price") <= high))
+
+    if out.limit(1).count() == 0:
+        return None
+
+    # Score: prioritize budget closeness, then transit accessibility and popularity.
+    price = _safe_col(out, "price", 0.0).cast("double")
+    transit = _safe_col(out, "transit_accessibility_score", 0.0).cast("double")
+    reviews = _safe_col(out, "number_of_reviews", 0.0).cast("double")
+
+    budget_score = F.greatest(
+        F.lit(0.0),
+        F.lit(1.0) - (F.abs(price - F.lit(target_price)) / F.lit(max(target_price, 1.0))),
+    ) * F.lit(70.0)
+    transit_score = F.least(F.lit(100.0), transit) * F.lit(0.2)
+    popularity_score = F.log1p(reviews) * F.lit(2.0)
+
+    out = out.withColumn("recommendation_score", budget_score + transit_score + popularity_score)
+
+    order_cols = [F.col("recommendation_score").desc(), F.col("price").asc()]
+    cols = [c for c in DISPLAY_COLUMNS if c in out.columns]
+    return out.orderBy(*order_cols).select(*cols).limit(limit).toPandas()
+
+
 def recommend_similar_listings(listing_id: int, limit: int = 10):
     df = load_gold_dataframe()
 
