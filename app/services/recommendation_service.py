@@ -20,7 +20,6 @@ DISPLAY_COLUMNS = [
     "recommendation_score",
 ]
 
-
 def _safe_col(df: DataFrame, col_name: str, default_value):
     return F.col(col_name) if col_name in df.columns else F.lit(default_value)
 
@@ -63,7 +62,6 @@ def get_price_bounds() -> Dict[str, float]:
     min_price = float(row["min_price"] or 0.0)
     max_price = float(row["max_price"] or 0.0)
     return {"min_price": min_price, "max_price": max_price}
-
 
 def recommend_by_zone_and_price(
     zone_code: str,
