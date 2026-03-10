@@ -4,12 +4,13 @@
 
 ## 1) ภาพรวมระบบ
 
-ระบบประกอบด้วย 4 แกนหลัก:
+ระบบประกอบด้วย 5 แกนหลัก:
 
 1. Big Data ETL ด้วย PySpark
 2. Natural Language Search (Rule-based)
 3. Price Prediction ด้วย Spark MLlib
-4. Streamlit Web App (Dashboard, Search, Prediction)
+4. Recommendation Engine (source-based + zone/price-based)
+5. Streamlit Web App (Dashboard, Search, Prediction, Recommendations)
 
 โครงสร้างข้อมูลหลัก:
 
@@ -83,6 +84,12 @@ Landmarks/Geo config ที่ใช้:
 - `near bts` / `near mrt`
 - sort intent เช่น `cheap`, `popular`
 
+รองรับไทยเพิ่มเติม:
+
+- location phrases: `แถว`, `ใกล้`, `ย่าน`, `ที่`
+- budget phrases: `ราคา`, `งบ`, `ไม่เกิน`, `บาท`, `ต่อคืน`
+- room type aliases ไทย เช่น `ห้องส่วนตัว`, `ห้องรวม`, `ห้องทั้งหลัง`, `ห้องพักโรงแรม`
+
 ### 3.2 Intent Rules สำคัญ (แก้ conflict แล้ว)
 
 - ถ้า query มี `in/at` + location:
@@ -108,6 +115,11 @@ Landmarks/Geo config ที่ใช้:
 - `distance_to_nearest_bts_lt`, `distance_to_nearest_mrt_lt`
 - `bedrooms_gte`, `accommodates_gte`
 - sort ตาม `price` หรือ `popularity_score`
+
+Fallback behavior สำคัญ:
+
+- ถ้า query แนว area-based (`near`/`ใกล้`/`แถว`) แล้วผลลัพธ์เป็น 0 ระบบจะผ่อนเฉพาะเงื่อนไขพื้นที่
+- ระบบยังคงเงื่อนไขงบประมาณ/ประเภทห้องที่ผู้ใช้ระบุไว้
 
 คอลัมน์ที่แสดงผลลัพธ์หลัก:
 
@@ -152,7 +164,24 @@ Landmarks/Geo config ที่ใช้:
 3. `VectorAssembler`
 4. `RandomForestRegressor`
 
-### 5.3 Prediction Service
+### 5.3 Outlier Handling ก่อนเทรน
+
+ไฟล์: `jobs/ml/train_price_model.py`
+
+ขั้นตอนหลัก:
+
+1. คำนวณ quantile ของราคา (เช่น P25/P75 และ upper quantiles)
+2. คำนวณ IQR และสร้างขอบเขตราคาที่ยอมรับได้
+3. กรองแถวที่เป็น outlier รุนแรง
+4. ทำ winsorization กับค่าปลายหางที่ยังเหลือ
+5. ค่อย split และ train model
+
+หมายเหตุ:
+
+- สัดส่วนการแบ่งข้อมูลเทรน: `80/20` (`randomSplit([0.8, 0.2], seed=42)`)
+- เป้าหมายคือทำให้ predicted price เสถียรขึ้นและไม่ถูกลากโดยราคา extreme
+
+### 5.4 Prediction Service
 
 - รับ input จากฟอร์ม
 - ถ้าไม่มี `bangkok_zone` จะ infer จาก `neighbourhood`
@@ -205,7 +234,18 @@ Landmarks/Geo config ที่ใช้:
 
 ไฟล์: `app/pages/recommendations.py`, `app/services/recommendation_service.py`
 
-หลักการแนะนำแบบ geo-aware:
+รองรับ 2 โหมดการแนะนำ:
+
+1. Source-listing mode (อิง listing ต้นทาง)
+2. Zone + Price mode (ผู้ใช้เลือกโซนและช่วงราคาโดยตรง)
+
+ฟังก์ชันหลักที่เพิ่ม:
+
+- `get_zone_options()`
+- `get_price_bounds()`
+- `recommend_by_zone_and_price(...)`
+
+หลักการแนะนำแบบ geo-aware และ budget-aware:
 
 - zone similarity (`bangkok_zone`)
 - room type similarity
@@ -213,6 +253,12 @@ Landmarks/Geo config ที่ใช้:
 - distance-to-city-center similarity
 - transit accessibility similarity
 - tourist-area profile similarity
+
+สำหรับ zone/price mode จะจัดอันดับจากคะแนนรวม (recommendation score) ที่ผสม:
+
+- ความใกล้งบประมาณที่ผู้ใช้เลือก
+- ความเข้าถึงระบบขนส่ง (BTS/MRT)
+- ความนิยมของ listing
 
 ## 7) Docker Runtime Logic
 
@@ -258,6 +304,31 @@ docker compose exec -T streamlit bash -lc "python jobs/etl/clean_data.py && pyth
 - `validate_geospatial_features.py`
 - `validate_location_intent.py`
 - `validate_zone_classification.py`
+
+## 10) เครื่องมือที่ใช้ในงานนี้
+
+Runtime / Infra:
+
+- Docker + Docker Compose
+- MinIO (S3-compatible)
+
+Data / ML:
+
+- PySpark
+- Spark MLlib (`RandomForestRegressor`)
+
+Application:
+
+- Streamlit (multi-page app)
+- Python service layer (`app/services/*`)
+
+Validation / QA commands:
+
+- `python -m compileall -q configs jobs app`
+- `docker compose exec -T streamlit python scripts/validate_search_queries.py`
+- `docker compose exec -T streamlit python scripts/validate_geospatial_features.py`
+- `docker compose exec -T streamlit python scripts/validate_location_intent.py`
+- `docker compose exec -T streamlit bash -lc "python jobs/etl/clean_data.py && python jobs/etl/feature_engineering.py && python jobs/etl/build_gold_dataset.py && python jobs/ml/train_price_model.py"`
 - `validate_geo_search_queries.py`
 - `validate_transit_distance.py`
 

@@ -7,7 +7,6 @@ from botocore.exceptions import ClientError
 
 from configs.settings import settings
 
-
 def get_s3_client() -> BaseClient:
     """Build an S3-compatible client for MinIO."""
     return boto3.client(
@@ -17,8 +16,6 @@ def get_s3_client() -> BaseClient:
         aws_secret_access_key=settings.minio_secret_key,
         region_name="us-east-1",
     )
-
-
 def ensure_bucket(client: Optional[BaseClient] = None) -> None:
     """Create the target bucket if it does not exist."""
     s3 = client or get_s3_client()

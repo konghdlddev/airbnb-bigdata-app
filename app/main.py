@@ -6,9 +6,11 @@ st.set_page_config(
     layout="wide",
 )
 
-st.title("ระบบวิเคราะห์ข้อมูล Airbnb กรุงเทพ")
-st.markdown(
-    """
+
+def _home_page():
+    st.title("ระบบวิเคราะห์ข้อมูล Airbnb กรุงเทพ")
+    st.markdown(
+        """
 แอปนี้ประกอบด้วย:
 - การวิเคราะห์ข้อมูลขนาดใหญ่ด้วย Spark
 - การค้นหาที่พักด้วยภาษาธรรมชาติ
@@ -21,4 +23,17 @@ st.markdown(
 - ทำนายราคา
 - แนะนำที่พัก
 """
-)
+    )
+
+
+# กำหนดเมนูในแถบด้านซ้าย: แก้ title และ icon ได้ตามต้องการ
+pages = [
+    st.Page(_home_page, title="หน้าหลัก", icon="🏠", default=True),
+    st.Page("pages/dashboard.py", title="แดชบอร์ด", icon="📊"),
+    st.Page("pages/natural_language_search.py", title="ค้นหาภาษาธรรมชาติ", icon="🔍"),
+    st.Page("pages/price_prediction.py", title="ทำนายราคา", icon="💰"),
+    st.Page("pages/recommendations.py", title="แนะนำที่พัก", icon="📍"),
+]
+
+pg = st.navigation(pages)
+pg.run()
