@@ -1,13 +1,19 @@
-from typing import Dict
+from typing import Dict, List
 
 from configs.geo_intelligence import get_zones
+from configs.zone_mapping import zone_to_neighbourhoods
 
 
-def _zone_neighbourhoods(zone_code: str):
+def _zone_neighbourhoods(zone_code: str) -> List[str]:
+    """Map zone_code to neighbourhood list. Uses geo_intelligence first, zone_mapping as fallback."""
     zones = get_zones()
     zone = zones.get(zone_code, {})
     # Convert aliases to title case for matching normalized neighbourhood values in dataset.
-    return sorted({" ".join(str(x).split()).title() for x in zone.get("neighbourhood_aliases", [])})
+    neighbourhoods = sorted({" ".join(str(x).split()).title() for x in zone.get("neighbourhood_aliases", [])})
+    if not neighbourhoods:
+        # Fallback: zone_mapping has more zones (e.g. BKP, ONN) not in bangkok_zones.json
+        neighbourhoods = zone_to_neighbourhoods().get(zone_code, [])
+    return neighbourhoods
 
 
 def build_filters(parsed_query: Dict) -> Dict:

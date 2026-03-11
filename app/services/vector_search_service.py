@@ -5,12 +5,9 @@ from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
-from pyspark.sql import functions as F
-from pyspark.sql.types import DoubleType
 
-from app.services.analytics_service import _spark, _use_pandas, load_gold_dataframe
 from configs.settings import settings
-from jobs.search.search_listings import OUTPUT_COLUMNS, search_listings, search_listings_pandas
+from jobs.search.search_listings import OUTPUT_COLUMNS, search_listings_pandas
 
 
 def _vector_index_exists() -> bool:
@@ -20,23 +17,6 @@ def _vector_index_exists() -> bool:
     if path.is_file():
         return True
     return path.is_dir() and any(path.iterdir())
-
-
-def _make_cos_sim_fn(broadcast_vec):
-    q = broadcast_vec.value
-
-    def cos_sim(emb):
-        if emb is None or not emb:
-            return 0.0
-        a = np.array(emb, dtype=float)
-        b = np.array(q, dtype=float)
-        na = np.linalg.norm(a)
-        nb = np.linalg.norm(b)
-        if na < 1e-9 or nb < 1e-9:
-            return 0.0
-        return float(np.dot(a, b) / (na * nb))
-
-    return cos_sim
 
 
 @lru_cache(maxsize=1)
@@ -55,34 +35,57 @@ def embed_texts(texts: List[str]) -> np.ndarray:
     return model.encode(texts, convert_to_numpy=True)
 
 
+@lru_cache(maxsize=1)
+def _load_gold_pandas() -> pd.DataFrame:
+    """Load Gold data as pandas (for vector search - always use pandas, faster than Spark UDF)."""
+    path = Path(settings.gold_data_path)
+    if not path.exists():
+        return pd.DataFrame()
+    return pd.read_parquet(path)
+
+
+@lru_cache(maxsize=1)
+def _load_vector_index_pandas() -> Optional[pd.DataFrame]:
+    """Load vector index once and cache (index doesn't change during session)."""
+    path = Path(settings.vector_index_path)
+    if not path.exists():
+        return None
+    df = pd.read_parquet(path)
+    if "embedding" not in df.columns or "id" not in df.columns:
+        return None
+    return df
+
+
 def _vector_search_pandas(query: str, limit: int, filters: Optional[Dict]) -> Optional[pd.DataFrame]:
-    """Pandas-based vector search when Spark unavailable."""
+    """Pandas-based vector search (always used when index exists - faster than Spark UDF)."""
     if not _vector_index_exists():
         return None
-    path = Path(settings.vector_index_path)
-    if path.is_dir():
-        index_df = pd.read_parquet(path)
-    else:
-        index_df = pd.read_parquet(path)
-    if "embedding" not in index_df.columns or "id" not in index_df.columns:
+    index_df = _load_vector_index_pandas()
+    if index_df is None:
         return None
-    gold_df = load_gold_dataframe()
+    index_df = index_df.copy()
+    gold_df = _load_gold_pandas()
     if filters:
         filtered = search_listings_pandas(gold_df, filters)
         allowed_ids = set(filtered["id"].unique())
         index_df = index_df[index_df["id"].isin(allowed_ids)]
     query_vec = embed_texts([query.strip() or " "])[0]
-    def cos_sim(emb):
-        if emb is None or (isinstance(emb, (list, np.ndarray)) and len(emb) == 0):
-            return 0.0
-        a = np.array(emb, dtype=float)
-        b = np.array(query_vec, dtype=float)
-        na, nb = np.linalg.norm(a), np.linalg.norm(b)
-        if na < 1e-9 or nb < 1e-9:
-            return 0.0
-        return float(np.dot(a, b) / (na * nb))
+    # Vectorized cosine similarity (float32 for speed)
+    embs_list = index_df["embedding"].tolist()
+    try:
+        embeddings = np.array(embs_list, dtype=np.float32)
+    except (ValueError, TypeError):
+        embeddings = np.array(
+            [np.array(e, dtype=np.float32) if e and len(e) else np.zeros(384, dtype=np.float32) for e in embs_list],
+            dtype=np.float32,
+        )
+    q = np.array(query_vec, dtype=np.float32)
+    norms = np.linalg.norm(embeddings, axis=1, keepdims=False).astype(np.float32)
+    np.maximum(norms, 1e-9, out=norms)
+    q_norm = max(float(np.linalg.norm(q)), 1e-9)
+    scores = (embeddings @ q) / (norms * q_norm)
     index_df = index_df.copy()
-    index_df["similarity_score"] = index_df["embedding"].apply(cos_sim)
+    index_df["similarity_score"] = scores
     top = index_df.nlargest(limit, "similarity_score")
     display_cols = [c for c in OUTPUT_COLUMNS if c in gold_df.columns]
     joined = top[["id", "similarity_score"]].merge(gold_df, on="id", how="inner")
@@ -98,37 +101,11 @@ def vector_search(
     Run semantic search: embed query, score by cosine similarity to listing vectors,
     optionally restrict to listings matching filters (hybrid). Returns pandas DataFrame
     with OUTPUT_COLUMNS + similarity_score.
+
+    Always uses pandas path when vector index exists (Spark UDF is too slow for this).
     """
-    if _use_pandas():
+    if _vector_index_exists():
         return _vector_search_pandas(query, limit, filters)
-    if not _vector_index_exists():
-        return None
-    spark = _spark()
-    index_df = spark.read.parquet(settings.vector_index_path)
-    if "embedding" not in index_df.columns or "id" not in index_df.columns:
-        return None
-
-    if filters:
-        gold_df = load_gold_dataframe()
-        filtered_df = search_listings(gold_df, filters).select("id").distinct()
-        index_df = index_df.join(filtered_df, "id", "inner")
-
-    query_vec = embed_texts([query.strip() or " "])[0]
-    broadcast_vec = spark.sparkContext.broadcast(query_vec.tolist())
-
-    from pyspark.sql.functions import udf
-
-    cos_sim = _make_cos_sim_fn(broadcast_vec)
-    cos_udf = udf(cos_sim, DoubleType())
-    scored = index_df.withColumn("similarity_score", cos_udf(F.col("embedding")))
-    top = scored.orderBy(F.col("similarity_score").desc()).limit(limit)
-
-    gold_df = load_gold_dataframe()
-    display_cols = [c for c in OUTPUT_COLUMNS if c in gold_df.columns]
-    joined = top.join(gold_df, "id", "inner").select(
-        *[F.col(c) for c in display_cols],
-        F.col("similarity_score"),
-    )
-    return joined.toPandas()
+    return None
 
 

@@ -27,7 +27,7 @@ def _home_page():
 
 เลือกเมนูจากแถบด้านซ้าย:
 - แดชบอร์ด
-- ค้นหาภาษาธรรมชาติ
+- Natural Language Search
 - ทำนายราคา
 - แนะนำที่พัก
 """
@@ -38,7 +38,7 @@ def _home_page():
 pages = [
     st.Page(_home_page, title="หน้าหลัก", icon="🏠", default=True),
     st.Page("pages/dashboard.py", title="แดชบอร์ด", icon="📊"),
-    st.Page("pages/natural_language_search.py", title="ค้นหาภาษาธรรมชาติ", icon="🔍"),
+    st.Page("pages/natural_language_search.py", title="Natural Language Search", icon="🔍"),
     st.Page("pages/price_prediction.py", title="ทำนายราคา", icon="💰"),
     st.Page("pages/recommendations.py", title="แนะนำที่พัก", icon="📍"),
 ]

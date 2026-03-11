@@ -4,9 +4,15 @@ import streamlit as st
 
 from app.components.tables import show_dataframe
 from app.services.search_service import get_processed_preview, run_natural_language_search
-from app.services.vector_search_service import _vector_index_exists
+from app.services.vector_search_service import _vector_index_exists, get_embedding_model
 
-st.title("ค้นหาภาษาธรรมชาติ")
+st.title("Natural Language Search")
+
+# Preload embedding model when page loads (so first search is fast)
+if _vector_index_exists():
+    with st.spinner("กำลังเตรียมระบบค้นหา (โหลดโมเดลครั้งแรก ~30 วินาที)..."):
+        get_embedding_model()
+
 if not _vector_index_exists():
     st.info(
         "ยังไม่ได้ build vector index — ใช้การค้นหาแบบ filter เท่านั้น. "
@@ -22,7 +28,8 @@ show_dataframe(get_processed_preview(limit=5), "ตัวอย่างข้�
 query = st.text_input("คำค้นหา", placeholder="ห้องทั้งหลัง ย่านราชเทวี")
 
 if query:
-    parsed, filters, filter_logic, result_df = run_natural_language_search(query, limit=10)
+    with st.spinner("กำลังค้นหา..."):
+        parsed, filters, filter_logic, result_df = run_natural_language_search(query, limit=10)
 
     if parsed.get("landmark_label") and parsed.get("distance_threshold_km") is not None:
         st.subheader("ผลตีความแลนด์มาร์ก")
