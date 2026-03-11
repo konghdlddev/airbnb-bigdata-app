@@ -14,6 +14,11 @@ class Settings:
     silver_data_path: str = os.getenv("APP_SILVER_DATA_PATH", "data/processed/silver/listings")
     gold_data_path: str = os.getenv("APP_GOLD_DATA_PATH", "data/processed/gold/listings")
     model_local_path: str = os.getenv("APP_MODEL_PATH", "models/price_prediction")
+    vector_index_path: str = os.getenv("APP_VECTOR_INDEX_PATH", "data/processed/gold/listing_embeddings")
+    embedding_model_name: str = os.getenv(
+        "APP_EMBEDDING_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    )
+    use_pandas_fallback: bool = os.getenv("USE_PANDAS", "false").lower() in ("1", "true", "yes")
 
     minio_endpoint: str = os.getenv("MINIO_ENDPOINT", "minio:9000")
     minio_access_key: str = os.getenv("MINIO_ACCESS_KEY", "minioadmin")

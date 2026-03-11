@@ -4,9 +4,18 @@ import streamlit as st
 
 from app.components.tables import show_dataframe
 from app.services.search_service import get_processed_preview, run_natural_language_search
+from app.services.vector_search_service import _vector_index_exists
 
 st.title("ค้นหาภาษาธรรมชาติ")
-st.caption("พิมพ์คำค้น เช่น 'ห้องแถวบางนา ราคาไม่เกิน 1200' หรือ 'ห้องส่วนตัว ใกล้ bts'.")
+if not _vector_index_exists():
+    st.info(
+        "ยังไม่ได้ build vector index — ใช้การค้นหาแบบ filter เท่านั้น. "
+        "รัน `python jobs/search/build_listing_embeddings.py` หลัง ETL เพื่อเปิดใช้ semantic (vector) search."
+    )
+st.caption(
+    "ค้นหาแบบ Vector (ความหมาย): พิมพ์คำค้น เช่น 'ห้องแถวบางนา ราคาไม่เกิน 1200' หรือ 'ห้องส่วนตัว ใกล้ bts'. "
+    "เมื่อมี listing embeddings ระบบจะใช้ semantic similarity ร่วมกับ filter."
+)
 
 show_dataframe(get_processed_preview(limit=5), "ตัวอย่างข้อมูลที่ประมวลผลแล้ว (5 แถวแรก)")
 

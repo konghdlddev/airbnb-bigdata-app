@@ -24,5 +24,15 @@ else
   echo "[bootstrap] Found existing gold dataset and model. Skipping ETL/training."
 fi
 
+VECTOR_INDEX_PATH="${APP_VECTOR_INDEX_PATH:-data/processed/gold/listing_embeddings}"
+if [[ -d "$GOLD_PATH" ]] && [[ -n "$(find "$GOLD_PATH" -type f 2>/dev/null | head -n 1)" ]]; then
+  if [[ -d "$VECTOR_INDEX_PATH" ]] && [[ -n "$(find "$VECTOR_INDEX_PATH" -type f 2>/dev/null | head -n 1)" ]]; then
+    echo "[bootstrap] Vector index exists. Skipping build_listing_embeddings."
+  else
+    echo "[bootstrap] Building listing embeddings for vector search (อาจใช้เวลา 5–10 นาทีครั้งแรก)..."
+    python jobs/search/build_listing_embeddings.py
+  fi
+fi
+
 echo "[bootstrap] Starting Streamlit on 0.0.0.0:8501"
 exec streamlit run app/main.py --server.address=0.0.0.0 --server.port=8501

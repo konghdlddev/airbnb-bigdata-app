@@ -47,11 +47,13 @@ if submit:
         "number_of_reviews": number_of_reviews,
         "availability_365": availability_365,
     }
-    predicted_price = predict_listing_price(payload)
-
-    st.subheader("ราคาที่คาดการณ์ต่อคืน")
-    st.success(f"ราคาที่คาดการณ์: {predicted_price:,.0f} บาท/คืน")
-    st.info("การประเมินนี้อิงจากทำเล ประเภทห้อง ความนิยม และความพร้อมให้จอง")
+    try:
+        predicted_price = predict_listing_price(payload)
+        st.subheader("ราคาที่คาดการณ์ต่อคืน")
+        st.success(f"ราคาที่คาดการณ์: {predicted_price:,.0f} บาท/คืน")
+        st.info("การประเมินนี้อิงจากทำเล ประเภทห้อง ความนิยม และความพร้อมให้จอง")
+    except RuntimeError as e:
+        st.error(str(e))
 
 st.markdown("---")
 st.markdown(

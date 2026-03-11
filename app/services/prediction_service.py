@@ -1,82 +1,90 @@
+"""Price prediction service. Requires Spark/Java for ML model; pandas fallback for options only."""
 from functools import lru_cache
 from typing import Dict, List
 
-from pyspark.ml import PipelineModel
-from pyspark.sql import functions as F
+import pandas as pd
 
-from app.services.analytics_service import _spark
+from app.services.analytics_service import _spark, _use_pandas, load_gold_dataframe
 from configs.geo_intelligence import neighbourhood_to_zone_map
 from configs.settings import settings
 
 
 @lru_cache(maxsize=1)
-def _model() -> PipelineModel:
-    """Load and cache the trained Spark pipeline model."""
+def _model():
+    """Load and cache the trained Spark pipeline model. Requires Spark/Java."""
+    from pyspark.ml import PipelineModel
+
     return PipelineModel.load(settings.model_local_path)
 
 
 @lru_cache(maxsize=1)
 def get_area_options() -> List[str]:
-    """Return sorted distinct neighbourhood values for the Area dropdown."""
-    df = _spark().read.parquet(settings.gold_data_path)
+    df = load_gold_dataframe()
+    if _use_pandas():
+        if df.empty or "neighbourhood" not in df.columns:
+            return ["Ratchathewi"]
+        opts = df["neighbourhood"].dropna().unique().astype(str).tolist()
+        return sorted(opts) or ["Ratchathewi"]
+    from pyspark.sql import functions as F
+
     rows = (
-        df.select("neighbourhood")
+        _spark()
+        .read.parquet(settings.gold_data_path)
+        .select("neighbourhood")
         .dropna(subset=["neighbourhood"])
         .distinct()
         .orderBy("neighbourhood")
         .collect()
     )
-    options = [r["neighbourhood"] for r in rows if r["neighbourhood"]]
-    return options or ["Ratchathewi"]
+    return [r["neighbourhood"] for r in rows if r["neighbourhood"]] or ["Ratchathewi"]
 
 
 @lru_cache(maxsize=1)
 def _distance_defaults_by_neighbourhood() -> Dict[str, Dict[str, float]]:
-    """Compute average distance features by neighbourhood for prediction-time defaults."""
-    df = _spark().read.parquet(settings.gold_data_path)
+    df = load_gold_dataframe()
     distance_cols = ["distance_to_siam", "distance_to_asok", "distance_to_city_center"]
-    existing_distance_cols = [c for c in distance_cols if c in df.columns]
-
-    if not existing_distance_cols:
+    existing = [c for c in distance_cols if c in (df.columns if hasattr(df, "columns") else [])]
+    if not existing:
         return {}
+    if _use_pandas():
+        if df.empty or "neighbourhood" not in df.columns:
+            return {}
+        agg = df.groupby("neighbourhood")[existing].mean()
+        return {str(n): {c: float(agg.loc[n, c] or 0) for c in existing} for n in agg.index if n}
+    from pyspark.sql import functions as F
 
-    agg_exprs = [F.avg(c).alias(c) for c in existing_distance_cols]
-    rows = (
-        df.groupBy("neighbourhood")
-        .agg(*agg_exprs)
-        .collect()
-    )
-
-    mapping: Dict[str, Dict[str, float]] = {}
-    for r in rows:
-        neighbourhood = r["neighbourhood"]
-        if not neighbourhood:
-            continue
-        mapping[neighbourhood] = {
-            col: float(r[col]) if r[col] is not None else 0.0 for col in existing_distance_cols
-        }
-    return mapping
+    rows = df.groupBy("neighbourhood").agg(*[F.avg(c).alias(c) for c in existing]).collect()
+    return {
+        str(r["neighbourhood"]): {c: float(r[c] or 0) for c in existing}
+        for r in rows
+        if r["neighbourhood"]
+    }
 
 
 @lru_cache(maxsize=1)
 def _global_distance_defaults() -> Dict[str, float]:
-    """Fallback distance defaults when neighbourhood-level averages are unavailable."""
-    df = _spark().read.parquet(settings.gold_data_path)
+    df = load_gold_dataframe()
     distance_cols = ["distance_to_siam", "distance_to_asok", "distance_to_city_center"]
-    existing = [c for c in distance_cols if c in df.columns]
+    existing = [c for c in distance_cols if c in (df.columns if hasattr(df, "columns") else [])]
     if not existing:
         return {c: 0.0 for c in distance_cols}
+    if _use_pandas():
+        if df.empty:
+            return {c: 0.0 for c in distance_cols}
+        return {c: float(df[c].mean() or 0) for c in existing}
+    from pyspark.sql import functions as F
 
-    agg_exprs = [F.avg(c).alias(c) for c in existing]
-    row = df.agg(*agg_exprs).first()
-    result = {c: 0.0 for c in distance_cols}
-    for c in existing:
-        result[c] = float(row[c] or 0.0)
-    return result
+    row = df.agg(*[F.avg(c).alias(c) for c in existing]).first()
+    return {c: float(row[c] or 0) for c in existing}
 
 
 def predict_listing_price(payload: Dict) -> float:
-    """Predict listing price from user inputs."""
+    """Predict listing price. Requires Spark/Java for ML model."""
+    if _use_pandas():
+        raise RuntimeError(
+            "Price prediction requires Java/Spark. Install Java and run without USE_PANDAS=1, "
+            "or use Docker which includes Java."
+        )
     zone_code = payload.get("bangkok_zone")
     if not zone_code:
         n_key = " ".join(str(payload.get("neighbourhood", "")).lower().split())
@@ -104,6 +112,8 @@ def predict_listing_price(payload: Dict) -> float:
         "distance_to_asok": _distance_value("distance_to_asok"),
         "distance_to_city_center": _distance_value("distance_to_city_center"),
     }
+
+    from pyspark.sql import functions as F
 
     df = _spark().createDataFrame([row])
     pred = _model().transform(df).select("prediction").first()[0]
