@@ -6,7 +6,10 @@ from app.services.prediction_service import get_area_options, predict_listing_pr
 st.title("ทำนายราคา")
 st.caption("ประเมินราคาที่พักจากคุณลักษณะของประกาศ")
 if _use_pandas():
-    st.info("โหมดประมาณการ (ใช้ค่าเฉลี่ยจากข้อมูล) — สำหรับ ML แบบเต็มรูปแบบ ใช้ Docker หรือติดตั้ง Java")
+    st.info(
+        "โหมดประมาณการ (ใช้ค่าเฉลี่ยจากข้อมูล) — สำหรับ ML แบบเต็มรูปแบบ ใช้ Docker หรือติดตั้ง Java. "
+        "ในโหมดนี้ ราคาประมาณการใช้เฉพาะ **ประเภทห้อง** และ **พื้นที่** เท่านั้น (จำนวนรีวิว/คืน/วันเปิดจองยังไม่ถูกนำมาคำนวณ)"
+    )
 
 area_options = get_area_options()
 default_area = "Ratchathewi" if "Ratchathewi" in area_options else area_options[0]

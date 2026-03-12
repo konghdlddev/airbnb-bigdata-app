@@ -1,5 +1,10 @@
+import os
 import sys
 from pathlib import Path
+
+# Fix Streamlit + PyTorch conflict: file watcher tries to inspect torch.classes and raises
+# "Tried to instantiate class '__path__._path', but it does not exist" - disable watcher
+os.environ.setdefault("STREAMLIT_SERVER_ENABLE_FILE_WATCHER", "false")
 
 # Ensure project root is in path so app.* imports work when pages are loaded by st.navigation
 _PROJECT_ROOT = Path(__file__).resolve().parents[1]

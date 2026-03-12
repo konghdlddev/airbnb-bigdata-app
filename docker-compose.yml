@@ -37,6 +37,8 @@ services:
       - .env
     environment:
       PYTHONPATH: /opt/app
+      # Fix Streamlit + PyTorch conflict (torch.classes) ที่ทำให้ Natural Language Search ล้มเหลว
+      STREAMLIT_SERVER_ENABLE_FILE_WATCHER: "false"
     depends_on:
       - minio
       - spark

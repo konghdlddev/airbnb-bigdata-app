@@ -23,13 +23,22 @@ st.caption(
     "เมื่อมี listing embeddings ระบบจะใช้ semantic similarity ร่วมกับ filter."
 )
 
-show_dataframe(get_processed_preview(limit=5), "ตัวอย่างข้อมูลที่ประมวลผลแล้ว (5 แถวแรก)")
+try:
+    preview_df = get_processed_preview(limit=5)
+    show_dataframe(preview_df, "ตัวอย่างข้อมูลที่ประมวลผลแล้ว (5 แถวแรก)")
+except Exception as e:
+    st.warning(f"ไม่สามารถโหลดตัวอย่างข้อมูลได้: {e}")
 
 query = st.text_input("คำค้นหา", placeholder="ห้องทั้งหลัง ย่านราชเทวี")
 
 if query:
     with st.spinner("กำลังค้นหา..."):
-        parsed, filters, filter_logic, result_df = run_natural_language_search(query, limit=10)
+        try:
+            parsed, filters, filter_logic, result_df = run_natural_language_search(query, limit=10)
+        except Exception as e:
+            st.error(f"เกิดข้อผิดพลาดในการค้นหา: {e}")
+            st.exception(e)
+            st.stop()
 
     if parsed.get("landmark_label") and parsed.get("distance_threshold_km") is not None:
         st.subheader("ผลตีความแลนด์มาร์ก")
