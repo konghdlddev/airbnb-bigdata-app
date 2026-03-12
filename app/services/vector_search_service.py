@@ -16,7 +16,11 @@ def _vector_index_exists() -> bool:
         return False
     if path.is_file():
         return True
-    return path.is_dir() and any(path.iterdir())
+    # directory: ต้องมีไฟล์ parquet (เช่น data.parquet)
+    if path.is_dir():
+        parquet_files = list(path.glob("*.parquet"))
+        return len(parquet_files) > 0
+    return False
 
 
 @lru_cache(maxsize=1)
@@ -50,7 +54,11 @@ def _load_vector_index_pandas() -> Optional[pd.DataFrame]:
     path = Path(settings.vector_index_path)
     if not path.exists():
         return None
-    df = pd.read_parquet(path)
+    # รองรับทั้ง path เป็นไฟล์หรือโฟลเดอร์ (มี data.parquet ข้างใน)
+    read_path = path / "data.parquet" if path.is_dir() else path
+    if not read_path.exists():
+        return None
+    df = pd.read_parquet(read_path)
     if "embedding" not in df.columns or "id" not in df.columns:
         return None
     return df

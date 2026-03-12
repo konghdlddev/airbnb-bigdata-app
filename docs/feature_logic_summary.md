@@ -95,7 +95,7 @@ StringIndexer → OneHotEncoder → VectorAssembler → RandomForestRegressor
 
 ## 6) Recommendation Logic
 
-ไฟล์: `app/pages/recommendations.py`, `app/services/recommendation_service.py`
+ไฟล์: `app/views/recommendations.py`, `app/services/recommendation_service.py`
 
 2 โหมด:
 
@@ -124,25 +124,25 @@ StringIndexer → OneHotEncoder → VectorAssembler → RandomForestRegressor
 
 ### 8.2 หน้า Dashboard
 
-ไฟล์: `app/pages/dashboard.py`
+ไฟล์: `app/views/dashboard.py`
 
 แสดง KPIs, charts (neighbourhood, room type, price vs distance, zone, BTS/MRT, tourist area), geo map
 
 ### 8.3 Natural Language Search
 
-ไฟล์: `app/pages/natural_language_search.py`
+ไฟล์: `app/views/natural_language_search.py`
 
 แสดง preview, parsed query, filters, filter logic, ตารางผลลัพธ์ (พร้อม `similarity_score` ถ้าใช้ vector search)
 
 ### 8.4 Price Prediction
 
-ไฟล์: `app/pages/price_prediction.py`
+ไฟล์: `app/views/price_prediction.py`
 
 ฟอร์ม area, room_type, minimum_nights, reviews, availability → แสดงราคาที่คาดการณ์ (ต้องมี Java/Spark)
 
 ### 8.5 Recommendations
 
-ไฟล์: `app/pages/recommendations.py`
+ไฟล์: `app/views/recommendations.py`
 
 2 tabs: เลือกตามโซนและราคา, เลือกจากประกาศต้นทาง
 

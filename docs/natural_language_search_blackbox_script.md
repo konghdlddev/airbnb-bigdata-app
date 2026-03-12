@@ -63,7 +63,7 @@
 
 | ไฟล์ | หน้าที่ |
 |------|---------|
-| `app/pages/natural_language_search.py` | UI: text input, แสดง parsed, filters, filter_logic, ตารางผลลัพธ์ |
+| `app/views/natural_language_search.py` | UI: text input, แสดง parsed, filters, filter_logic, ตารางผลลัพธ์ |
 | `app/services/search_service.py` | Orchestration: เรียก parse → build_filters → vector_search หรือ filter-only |
 | `app/services/vector_search_service.py` | Vector search: embed query, cosine similarity, hybrid filter |
 | `jobs/search/parse_query.py` | แปลงข้อความเป็น structured intent (regex + rules) |

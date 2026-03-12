@@ -1,12 +1,24 @@
 import json
+from pathlib import Path
 
 import streamlit as st
 
 from app.components.tables import show_dataframe
 from app.services.search_service import get_processed_preview, run_natural_language_search
 from app.services.vector_search_service import _vector_index_exists, get_embedding_model
+from configs.settings import settings
 
 st.title("Natural Language Search")
+
+# Debug: แสดงสถานะ path (ซ่อนใน expander)
+with st.expander("🔧 สถานะระบบ (สำหรับตรวจสอบปัญหา)"):
+    gold_path = Path(settings.gold_data_path)
+    vec_path = Path(settings.vector_index_path)
+    vec_parquet = vec_path / "data.parquet" if vec_path.is_dir() else vec_path
+    st.write(f"**Gold data:** `{gold_path}` — มีอยู่: {gold_path.exists()}")
+    st.write(f"**Vector index:** `{vec_path}` — มีอยู่: {vec_path.exists()}")
+    st.write(f"**Vector parquet:** `{vec_parquet}` — มีอยู่: {vec_parquet.exists()}")
+    st.write(f"**Vector search พร้อมใช้:** {_vector_index_exists()}")
 
 # Preload embedding model when page loads (so first search is fast)
 if _vector_index_exists():

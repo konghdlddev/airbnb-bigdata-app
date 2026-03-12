@@ -43,7 +43,7 @@ airbnb-bigdata-app/
       predict_price.py
   app/
     main.py
-    pages/
+    views/
       dashboard.py
       natural_language_search.py
       price_prediction.py
@@ -281,6 +281,7 @@ python jobs/ml/train_price_model.py
 
 <!-- how to run  -->
 1. รัน Docker:
+`docker compose down`
 `docker-compose up --build`
 
 2. หรือรัน local (ต้องตั้ง STREAMLIT_SERVER_ENABLE_FILE_WATCHER=false ก่อน หรือให้ main.py ตั้งให้เอง):
