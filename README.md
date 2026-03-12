@@ -277,3 +277,12 @@ python jobs/ml/train_price_model.py
 
 <!-- run ด้วย -->
 `streamlit run app/main.py`
+
+
+<!-- how to run  -->
+1. รัน Docker:
+`docker-compose up --build`
+
+2. หรือรัน local (ต้องตั้ง STREAMLIT_SERVER_ENABLE_FILE_WATCHER=false ก่อน หรือให้ main.py ตั้งให้เอง):
+`streamlit run app/main.py`
+
