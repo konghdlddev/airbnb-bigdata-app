@@ -1,9 +1,12 @@
 import streamlit as st
 
+from app.services.analytics_service import _use_pandas
 from app.services.prediction_service import get_area_options, predict_listing_price
 
 st.title("ทำนายราคา")
 st.caption("ประเมินราคาที่พักจากคุณลักษณะของประกาศ")
+if _use_pandas():
+    st.info("โหมดประมาณการ (ใช้ค่าเฉลี่ยจากข้อมูล) — สำหรับ ML แบบเต็มรูปแบบ ใช้ Docker หรือติดตั้ง Java")
 
 area_options = get_area_options()
 default_area = "Ratchathewi" if "Ratchathewi" in area_options else area_options[0]

@@ -69,21 +69,31 @@ def _vector_search_pandas(query: str, limit: int, filters: Optional[Dict]) -> Op
         filtered = search_listings_pandas(gold_df, filters)
         allowed_ids = set(filtered["id"].unique())
         index_df = index_df[index_df["id"].isin(allowed_ids)]
+    if index_df.empty:
+        return pd.DataFrame()
     query_vec = embed_texts([query.strip() or " "])[0]
-    # Vectorized cosine similarity (float32 for speed)
+    # Vectorized cosine similarity (float64 for stability, avoid overflow)
     embs_list = index_df["embedding"].tolist()
     try:
-        embeddings = np.array(embs_list, dtype=np.float32)
+        embeddings = np.array(embs_list, dtype=np.float64)
     except (ValueError, TypeError):
         embeddings = np.array(
-            [np.array(e, dtype=np.float32) if e and len(e) else np.zeros(384, dtype=np.float32) for e in embs_list],
-            dtype=np.float32,
+            [np.array(e, dtype=np.float64) if e and len(e) else np.zeros(384, dtype=np.float64) for e in embs_list],
+            dtype=np.float64,
         )
-    q = np.array(query_vec, dtype=np.float32)
-    norms = np.linalg.norm(embeddings, axis=1, keepdims=False).astype(np.float32)
-    np.maximum(norms, 1e-9, out=norms)
+    # Ensure 2D: (n, 384) - handle single row or empty edge cases
+    if embeddings.ndim == 1:
+        embeddings = np.reshape(embeddings, (1, -1))
+    # Sanitize: replace nan/inf with 0 to avoid divide-by-zero and overflow
+    embeddings = np.nan_to_num(embeddings, nan=0.0, posinf=0.0, neginf=0.0, copy=False)
+    q = np.array(query_vec, dtype=np.float64)
+    q = np.nan_to_num(q, nan=0.0, posinf=0.0, neginf=0.0, copy=False)
+    norms = np.linalg.norm(embeddings, axis=1, keepdims=False)
+    norms = np.maximum(norms, 1e-9)
     q_norm = max(float(np.linalg.norm(q)), 1e-9)
-    scores = (embeddings @ q) / (norms * q_norm)
+    with np.errstate(divide="ignore", invalid="ignore", over="ignore"):
+        scores = (embeddings @ q) / (norms * q_norm)
+    scores = np.nan_to_num(scores, nan=0.0, posinf=0.0, neginf=0.0)
     index_df = index_df.copy()
     index_df["similarity_score"] = scores
     top = index_df.nlargest(limit, "similarity_score")

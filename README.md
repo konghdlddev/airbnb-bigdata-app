@@ -272,3 +272,8 @@ python jobs/ml/train_price_model.py
 - On first startup, the Streamlit container automatically runs ETL and model training before launching the UI.
 - On subsequent startups, if `data/processed/gold/listings/` and `models/price_prediction/` already exist, ETL/training are skipped for faster app loading.
 - You can run jobs manually inside the Streamlit container if needed.
+
+
+
+<!-- run ด้วย -->
+`streamlit run app/main.py`

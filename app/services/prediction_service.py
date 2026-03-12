@@ -78,13 +78,29 @@ def _global_distance_defaults() -> Dict[str, float]:
     return {c: float(row[c] or 0) for c in existing}
 
 
+def _predict_price_pandas(payload: Dict) -> float:
+    """Pandas fallback: estimate price from average by room_type + neighbourhood in Gold data."""
+    df = load_gold_dataframe()
+    if df.empty or "price" not in df.columns:
+        return 1500.0  # default fallback
+    room_type = payload.get("room_type", "Private room")
+    neighbourhood = payload.get("neighbourhood", "")
+    mask = df["room_type"] == room_type
+    if neighbourhood and "neighbourhood" in df.columns:
+        mask_n = mask & (df["neighbourhood"] == neighbourhood)
+        subset = df.loc[mask_n, "price"].dropna()
+        if len(subset) >= 3:
+            return float(subset.median())
+    subset = df.loc[mask, "price"].dropna()
+    if len(subset) >= 1:
+        return float(subset.median())
+    return float(df["price"].median()) if not df["price"].empty else 1500.0
+
+
 def predict_listing_price(payload: Dict) -> float:
-    """Predict listing price. Requires Spark/Java for ML model."""
+    """Predict listing price. Uses Spark ML when available; pandas fallback (avg by room_type+area) otherwise."""
     if _use_pandas():
-        raise RuntimeError(
-            "Price prediction requires Java/Spark. Install Java and run without USE_PANDAS=1, "
-            "or use Docker which includes Java."
-        )
+        return _predict_price_pandas(payload)
     zone_code = payload.get("bangkok_zone")
     if not zone_code:
         n_key = " ".join(str(payload.get("neighbourhood", "")).lower().split())
