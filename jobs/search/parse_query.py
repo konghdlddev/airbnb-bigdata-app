@@ -55,6 +55,9 @@ def _extract_location(query: str, rules: Dict) -> Optional[str]:
 
 
 def _extract_price(query: str, rules: Dict) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+    # Returns (price_max, price_min, price_max_range)
+    # price_max = ราคาไม่เกิน X; price_min = ราคาตั้งแต่ X ขึ้นไป; price_max_range = high end of range
+
     # Thai range: "ราคา 300-700 บาท" or "ระหว่าง 300 ถึง 700".
     th_range = re.search(r"(?:ราคา\s*)?(\d{2,6})\s*(?:-|ถึง|to|and)\s*(\d{2,6})\s*(?:บาท)?", query)
     if th_range:
@@ -68,6 +71,25 @@ def _extract_price(query: str, rules: Dict) -> Tuple[Optional[float], Optional[f
         high = float(max(int(range_match.group(1)), int(range_match.group(2))))
         return None, low, high
 
+    # ราคาตั้งแต่ X ขึ้นไป / มากกว่า X / สูงกว่า X (ต้องมีคำบ่งชี้ min — ไม่ match "ราคา 500" อย่างเดียว)
+    th_min_match = re.search(
+        r"(?:ไม่ต่ำกว่า|อย่างน้อย|ตั้งแต่|มากกว่า|สูงกว่า|ราคา\s*(?:ไม่ต่ำกว่า|มากกว่า|สูงกว่า))\s*(\d{2,6})\s*(?:บาท)?",
+        query,
+    )
+    if th_min_match:
+        return None, float(th_min_match.group(1)), None
+
+    min_match = re.search(r"(?:more\s+than|above|over|greater\s+than|at\s+least)\s*(\d{2,6})\b", query)
+    if min_match:
+        return None, float(min_match.group(1)), None
+
+    # "more 500" or "more than 500" (more 500 without "than" - fallback)
+    if re.search(r"\bmore\s+(\d{2,6})\b", query) and not re.search(r"\bmore\s+than\s+\d", query):
+        m = re.search(r"\bmore\s+(\d{2,6})\b", query)
+        if m:
+            return None, float(m.group(1)), None
+
+    # ราคาไม่เกิน X / ต่ำกว่า X / under X
     th_max_match = re.search(r"(?:ไม่เกิน|ต่ำกว่า|งบ(?:ไม่เกิน)?|ราคา(?:ไม่เกิน)?)\s*(\d{2,6})\s*(?:บาท)?", query)
     if th_max_match:
         return float(th_max_match.group(1)), None, None
