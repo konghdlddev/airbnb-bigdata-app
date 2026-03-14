@@ -1,4 +1,5 @@
 """Price prediction service. Requires Spark/Java for ML model; pandas fallback for options only."""
+import math
 from functools import lru_cache
 from typing import Dict, List
 
@@ -133,4 +134,5 @@ def predict_listing_price(payload: Dict) -> float:
 
     df = _spark().createDataFrame([row])
     pred = _model().transform(df).select("prediction").first()[0]
-    return float(pred)
+    # Model predicts log(price); convert to price.
+    return float(math.exp(pred))

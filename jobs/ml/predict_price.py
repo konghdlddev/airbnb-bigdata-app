@@ -1,3 +1,4 @@
+import math
 from typing import Dict
 
 from pyspark.ml import PipelineModel
@@ -42,4 +43,5 @@ def predict_price(payload: Dict) -> float:
 
     prediction = model.transform(input_df).select("prediction").first()[0]
     spark.stop()
-    return float(prediction)
+    # Model predicts log(price); convert to price.
+    return float(math.exp(prediction))

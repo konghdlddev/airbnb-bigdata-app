@@ -7,7 +7,7 @@ if str(_PROJECT_ROOT) not in sys.path:
 
 from pyspark.ml import Pipeline
 from pyspark.ml.feature import OneHotEncoder, StringIndexer, VectorAssembler
-from pyspark.ml.regression import RandomForestRegressor
+from pyspark.ml.regression import GBTRegressor
 from pyspark.sql import functions as F
 
 from configs.minio_client import upload_directory
@@ -35,6 +35,19 @@ FEATURE_COLUMNS = [
 LOWER_Q = 0.01
 UPPER_Q = 0.99
 IQR_MULTIPLIER = 1.5
+
+NUMERIC_FILL = {
+    "minimum_nights": 0.0,
+    "number_of_reviews": 0.0,
+    "reviews_per_month": 0.0,
+    "availability_365": 0.0,
+    "distance_to_nearest_bts": 20.0,
+    "distance_to_nearest_mrt": 20.0,
+    "transit_accessibility_score": 0.0,
+    "distance_to_siam": 20.0,
+    "distance_to_asok": 20.0,
+    "distance_to_city_center": 20.0,
+}
 
 
 def apply_price_outlier_handling(df):
@@ -67,6 +80,21 @@ def apply_price_outlier_handling(df):
         "lower_bound": lower_bound,
         "upper_bound": upper_bound,
     }
+
+
+def prepare_gold_for_ml(spark):
+    """Load gold data and apply same preprocessing as training (fillna, dropna, outlier handling).
+    Returns (df, stats) so train and evaluate share identical data prep and split."""
+    df = spark.read.parquet(settings.gold_data_path).select(*FEATURE_COLUMNS, "price")
+    df = df.fillna(NUMERIC_FILL)
+    df = df.fillna({"room_type": "Unknown", "bangkok_zone": "OTHER"})
+    df = df.withColumn(
+        "is_tourist_area_num",
+        F.when(F.col("is_tourist_area") == True, F.lit(1.0)).otherwise(F.lit(0.0)),
+    )
+    df = df.dropna(subset=["price"])
+    df, stats = apply_price_outlier_handling(df)
+    return df, stats
 
 
 def build_training_pipeline() -> Pipeline:
@@ -103,43 +131,26 @@ def build_training_pipeline() -> Pipeline:
         outputCol="features",
     )
 
-    rf = RandomForestRegressor(
-        labelCol="price",
+    # Train on log(price) to handle right-skewed prices; prediction is exp(model output).
+    gbt = GBTRegressor(
+        labelCol="log_price",
         featuresCol="features",
         predictionCol="prediction",
-        numTrees=80,
-        maxDepth=10,
+        maxIter=150,
+        maxDepth=8,
+        stepSize=0.05,
         seed=42,
     )
 
-    return Pipeline(stages=[room_indexer, zone_indexer, encoder, assembler, rf])
+    return Pipeline(stages=[room_indexer, zone_indexer, encoder, assembler, gbt])
 
 
 if __name__ == "__main__":
     spark = get_spark_session("airbnb-train-price-model")
 
-    df = spark.read.parquet(settings.gold_data_path).select(*FEATURE_COLUMNS, "price")
-    raw_count = df.count()
-
-    numeric_fill = {
-        "minimum_nights": 0.0,
-        "number_of_reviews": 0.0,
-        "reviews_per_month": 0.0,
-        "availability_365": 0.0,
-        "distance_to_nearest_bts": 20.0,
-        "distance_to_nearest_mrt": 20.0,
-        "transit_accessibility_score": 0.0,
-        "distance_to_siam": 20.0,
-        "distance_to_asok": 20.0,
-        "distance_to_city_center": 20.0,
-    }
-    df = df.fillna(numeric_fill)
-    df = df.fillna({"room_type": "Unknown", "bangkok_zone": "OTHER"})
-    df = df.withColumn("is_tourist_area_num", F.when(F.col("is_tourist_area") == True, F.lit(1.0)).otherwise(F.lit(0.0)))
-
-    df = df.dropna(subset=["price"])
-
-    df, stats = apply_price_outlier_handling(df)
+    raw_count = spark.read.parquet(settings.gold_data_path).count()
+    df, stats = prepare_gold_for_ml(spark)
+    df = df.withColumn("log_price", F.log(F.col("price")))
     final_count = df.count()
 
     train_df, _ = df.randomSplit([0.8, 0.2], seed=42)
@@ -147,10 +158,13 @@ if __name__ == "__main__":
     model = pipeline.fit(train_df)
 
     model.write().overwrite().save(settings.model_local_path)
-    upload_directory(settings.model_local_path, settings.minio_model_prefix)
+    try:
+        upload_directory(settings.model_local_path, settings.minio_model_prefix)
+        print(f"Model uploaded to s3://{settings.minio_bucket}/{settings.minio_model_prefix}/")
+    except Exception as e:
+        print(f"MinIO upload skipped (run with Docker or set MINIO_ENDPOINT for upload): {e!r}")
 
     print(f"Model saved to {settings.model_local_path}")
-    print(f"Model uploaded to s3://{settings.minio_bucket}/{settings.minio_model_prefix}/")
     print(
         "Outlier handling:",
         {
