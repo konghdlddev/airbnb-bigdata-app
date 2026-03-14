@@ -1,4 +1,3 @@
-import math
 from typing import Dict
 
 from pyspark.ml import PipelineModel
@@ -25,6 +24,9 @@ def predict_price(payload: Dict) -> float:
     row = {
         "room_type": payload.get("room_type", "Entire home/apt"),
         "bangkok_zone": zone_code,
+        "neighbourhood": payload.get("neighbourhood") or "Unknown",
+        "bedrooms": int(payload.get("bedrooms", 1)),
+        "accommodates": int(payload.get("accommodates", 2)),
         "minimum_nights": float(payload.get("minimum_nights", 1)),
         "number_of_reviews": float(payload.get("number_of_reviews", 0)),
         "reviews_per_month": float(payload.get("reviews_per_month", 0.0)),
@@ -43,5 +45,4 @@ def predict_price(payload: Dict) -> float:
 
     prediction = model.transform(input_df).select("prediction").first()[0]
     spark.stop()
-    # Model predicts log(price); convert to price.
-    return float(math.exp(prediction))
+    return float(prediction)

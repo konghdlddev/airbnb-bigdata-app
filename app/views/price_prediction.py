@@ -26,6 +26,10 @@ with st.form("price_prediction_form"):
     neighbourhood = st.selectbox("พื้นที่", options=area_options, index=area_options.index(default_area))
     st.caption("เขตที่ตั้งของที่พัก")
 
+    bedrooms = st.number_input("จำนวนห้องนอน", min_value=0, max_value=20, value=1)
+    accommodates = st.number_input("รองรับผู้เข้าพัก (คน)", min_value=1, max_value=20, value=2)
+    st.caption("ขนาดและความจุของที่พัก")
+
     minimum_nights = st.number_input(
         "จำนวนคืนขั้นต่ำ", min_value=1, max_value=365, value=2
     )
@@ -49,6 +53,8 @@ if submit:
     payload = {
         "room_type": room_type,
         "neighbourhood": neighbourhood,
+        "bedrooms": bedrooms,
+        "accommodates": accommodates,
         "minimum_nights": minimum_nights,
         "number_of_reviews": number_of_reviews,
         "availability_365": availability_365,

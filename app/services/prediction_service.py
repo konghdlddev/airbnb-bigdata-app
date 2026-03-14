@@ -1,5 +1,4 @@
 """Price prediction service. Requires Spark/Java for ML model; pandas fallback for options only."""
-import math
 from functools import lru_cache
 from typing import Dict, List
 
@@ -107,7 +106,7 @@ def predict_listing_price(payload: Dict) -> float:
         n_key = " ".join(str(payload.get("neighbourhood", "")).lower().split())
         zone_code = neighbourhood_to_zone_map().get(n_key, "OTHER")
 
-    neighbourhood = payload["neighbourhood"]
+    neighbourhood = payload.get("neighbourhood") or "Unknown"
     neighbourhood_defaults = _distance_defaults_by_neighbourhood().get(neighbourhood, {})
     global_defaults = _global_distance_defaults()
 
@@ -117,6 +116,9 @@ def predict_listing_price(payload: Dict) -> float:
     row = {
         "room_type": payload["room_type"],
         "bangkok_zone": zone_code,
+        "neighbourhood": payload.get("neighbourhood") or "Unknown",
+        "bedrooms": int(payload.get("bedrooms", 1)),
+        "accommodates": int(payload.get("accommodates", 2)),
         "minimum_nights": float(payload["minimum_nights"]),
         "number_of_reviews": float(payload["number_of_reviews"]),
         "reviews_per_month": float(payload.get("reviews_per_month", 0.0)),
@@ -134,5 +136,4 @@ def predict_listing_price(payload: Dict) -> float:
 
     df = _spark().createDataFrame([row])
     pred = _model().transform(df).select("prediction").first()[0]
-    # Model predicts log(price); convert to price.
-    return float(math.exp(pred))
+    return float(pred)

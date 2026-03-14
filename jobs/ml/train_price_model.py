@@ -7,7 +7,7 @@ if str(_PROJECT_ROOT) not in sys.path:
 
 from pyspark.ml import Pipeline
 from pyspark.ml.feature import OneHotEncoder, StringIndexer, VectorAssembler
-from pyspark.ml.regression import GBTRegressor
+from pyspark.ml.regression import RandomForestRegressor
 from pyspark.sql import functions as F
 
 from configs.minio_client import upload_directory
@@ -18,6 +18,9 @@ from configs.spark_session import get_spark_session
 FEATURE_COLUMNS = [
     "room_type",
     "bangkok_zone",
+    "neighbourhood",
+    "bedrooms",
+    "accommodates",
     "minimum_nights",
     "number_of_reviews",
     "reviews_per_month",
@@ -37,6 +40,8 @@ UPPER_Q = 0.99
 IQR_MULTIPLIER = 1.5
 
 NUMERIC_FILL = {
+    "bedrooms": 1,
+    "accommodates": 2,
     "minimum_nights": 0.0,
     "number_of_reviews": 0.0,
     "reviews_per_month": 0.0,
@@ -87,7 +92,7 @@ def prepare_gold_for_ml(spark):
     Returns (df, stats) so train and evaluate share identical data prep and split."""
     df = spark.read.parquet(settings.gold_data_path).select(*FEATURE_COLUMNS, "price")
     df = df.fillna(NUMERIC_FILL)
-    df = df.fillna({"room_type": "Unknown", "bangkok_zone": "OTHER"})
+    df = df.fillna({"room_type": "Unknown", "bangkok_zone": "OTHER", "neighbourhood": "Unknown"})
     df = df.withColumn(
         "is_tourist_area_num",
         F.when(F.col("is_tourist_area") == True, F.lit(1.0)).otherwise(F.lit(0.0)),
@@ -105,6 +110,9 @@ def build_training_pipeline() -> Pipeline:
     zone_indexer = StringIndexer(
         inputCol="bangkok_zone", outputCol="bangkok_zone_idx", handleInvalid="keep"
     )
+    neighbourhood_indexer = StringIndexer(
+        inputCol="neighbourhood", outputCol="neighbourhood_idx", handleInvalid="keep"
+    )
 
     encoder = OneHotEncoder(
         inputCols=["room_type_idx", "bangkok_zone_idx"],
@@ -116,6 +124,9 @@ def build_training_pipeline() -> Pipeline:
         inputCols=[
             "room_type_ohe",
             "bangkok_zone_ohe",
+            "neighbourhood_idx",
+            "bedrooms",
+            "accommodates",
             "minimum_nights",
             "number_of_reviews",
             "reviews_per_month",
@@ -131,18 +142,19 @@ def build_training_pipeline() -> Pipeline:
         outputCol="features",
     )
 
-    # Train on log(price) to handle right-skewed prices; prediction is exp(model output).
-    gbt = GBTRegressor(
-        labelCol="log_price",
+    # maxBins must be >= max distinct values in any feature; neighbourhood has 50+ levels
+    rf = RandomForestRegressor(
+        labelCol="price",
         featuresCol="features",
         predictionCol="prediction",
-        maxIter=150,
-        maxDepth=8,
-        stepSize=0.05,
+        numTrees=200,
+        maxDepth=16,
+        minInstancesPerNode=3,
+        maxBins=64,
         seed=42,
     )
 
-    return Pipeline(stages=[room_indexer, zone_indexer, encoder, assembler, gbt])
+    return Pipeline(stages=[room_indexer, zone_indexer, neighbourhood_indexer, encoder, assembler, rf])
 
 
 if __name__ == "__main__":
@@ -150,7 +162,6 @@ if __name__ == "__main__":
 
     raw_count = spark.read.parquet(settings.gold_data_path).count()
     df, stats = prepare_gold_for_ml(spark)
-    df = df.withColumn("log_price", F.log(F.col("price")))
     final_count = df.count()
 
     train_df, _ = df.randomSplit([0.8, 0.2], seed=42)
